@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Retail Flow</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_categories">Categories</string>
+    <string name="nav_cart">Cart</string>
+    <string name="nav_orders">Orders</string>
+    <string name="nav_account">Account</string>
+
+    <string name="search_hint">Search products, brands and more&#8230;</string>
+    <string name="featured_products">Featured Products</string>
+    <string name="new_arrivals">New Arrivals</string>
+    <string name="categories">Categories</string>
+    <string name="view_all">View All</string>
+
+    <string name="add_to_cart">Add to Cart</string>
+    <string name="buy_now">Buy Now</string>
+    <string name="out_of_stock">Out of Stock</string>
+    <string name="in_stock">In Stock</string>
+
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="logout">Logout</string>
+    <string name="don_t_have_an_account_register">Don\'t have an account? Register</string>
+    <string name="already_have_an_account_login">Already have an account? Login</string>
+
+    <string name="cart_empty">Your cart is empty</string>
+    <string name="cart_empty_sub">Browse our products and add items to your cart</string>
+    <string name="continue_shopping">Continue Shopping</string>
+    <string name="checkout">Proceed to Checkout</string>
+
+    <string name="order_success">Order Placed Successfully!</string>
+    <string name="order_success_msg">Thank you for shopping with Retail Flow. Your order reference is:</string>
+    <string name="view_order">View Order</string>
+
+    <string name="retry">Retry</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_network">No internet connection. Please check your network.</string>
+</resources>
