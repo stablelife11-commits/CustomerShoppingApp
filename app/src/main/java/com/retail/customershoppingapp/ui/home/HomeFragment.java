@@ -82,7 +82,8 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     }
 
     private void loadData() {
-        productViewModel.fetchProducts().observe(getViewLifecycleOwner(), resource -> {
+        // 🟢 FIX: Fetch exactly 20 products for the home page (Page 0, Size 20)
+        productViewModel.fetchProducts(0, 20).observe(getViewLifecycleOwner(), resource -> {
             if (resource == null) return;
 
             binding.swipeRefresh.setRefreshing(false);

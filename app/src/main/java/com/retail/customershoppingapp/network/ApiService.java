@@ -16,6 +16,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query; // 🟢 NAYA IMPORT
 
 public interface ApiService {
 
@@ -26,9 +27,9 @@ public interface ApiService {
     @POST("api/v1/auth/register")
     Call<AuthResponse> register(@Body RegisterRequest request);
 
-    // Products
+    // 🟢 FIX: Pagination support added
     @GET("api/v1/products")
-    Call<List<ProductResponse>> getProducts();
+    Call<List<ProductResponse>> getProducts(@Query("page") int page, @Query("size") int size);
 
     @GET("api/v1/products/{id}")
     Call<ProductResponse> getProductById(@Path("id") Long id);
@@ -37,7 +38,7 @@ public interface ApiService {
     @POST("api/v1/orders")
     Call<OrderResponse> createOrder(@Body OrderRequest request);
 
-    @GET("api/v1/orders")
+    @GET("api/v1/orders/my-orders")
     Call<List<OrderResponse>> getOrders();
 
     // Customers

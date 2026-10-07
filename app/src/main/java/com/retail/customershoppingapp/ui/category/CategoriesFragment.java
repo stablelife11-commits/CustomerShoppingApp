@@ -44,7 +44,8 @@ public class CategoriesFragment extends Fragment implements CategoryAdapter.OnCa
         categoryAdapter = new CategoryAdapter(this);
         binding.rvCategoriesGrid.setAdapter(categoryAdapter);
 
-        productViewModel.fetchProducts().observe(getViewLifecycleOwner(), resource -> {
+        // 🟢 FIX: Fetch first 50 products to extract categories (Page 0, Size 50)
+        productViewModel.fetchProducts(0, 50).observe(getViewLifecycleOwner(), resource -> {
             if (resource != null && resource.status == Resource.Status.SUCCESS) {
                 List<ProductResponse> products = resource.data != null ? resource.data : new ArrayList<>();
                 Set<String> categorySet = new HashSet<>();

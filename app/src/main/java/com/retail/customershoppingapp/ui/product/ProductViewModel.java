@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Transformations;
 
 import com.retail.customershoppingapp.model.product.ProductResponse;
 import com.retail.customershoppingapp.network.Resource;
@@ -27,8 +26,9 @@ public class ProductViewModel extends AndroidViewModel {
         repository = new ProductRepository(application);
     }
 
-    public LiveData<Resource<List<ProductResponse>>> fetchProducts() {
-        return repository.getProducts();
+    // 🟢 FIX: Request exact page and size from Repository
+    public LiveData<Resource<List<ProductResponse>>> fetchProducts(int page, int size) {
+        return repository.getProducts(page, size);
     }
 
     public LiveData<Resource<ProductResponse>> getProductById(Long productId) {

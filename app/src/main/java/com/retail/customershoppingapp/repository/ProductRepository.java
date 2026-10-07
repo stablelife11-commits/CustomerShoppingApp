@@ -24,11 +24,12 @@ public class ProductRepository {
         this.apiService = RetrofitClient.getInstance(context).getApi();
     }
 
-    public LiveData<Resource<List<ProductResponse>>> getProducts() {
+    // 🟢 FIX: page aur size parameters add kiye gaye hain
+    public LiveData<Resource<List<ProductResponse>>> getProducts(int page, int size) {
         MutableLiveData<Resource<List<ProductResponse>>> result = new MutableLiveData<>();
         result.setValue(Resource.loading(null));
 
-        apiService.getProducts().enqueue(new Callback<List<ProductResponse>>() {
+        apiService.getProducts(page, size).enqueue(new Callback<List<ProductResponse>>() {
             @Override
             public void onResponse(@NonNull Call<List<ProductResponse>> call, @NonNull Response<List<ProductResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {

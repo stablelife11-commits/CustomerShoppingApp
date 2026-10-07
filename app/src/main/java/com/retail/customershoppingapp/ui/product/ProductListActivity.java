@@ -7,8 +7,11 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.retail.customershoppingapp.databinding.ActivityProductListBinding;
 import com.retail.customershoppingapp.model.product.ProductResponse;
@@ -25,6 +28,12 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
     private CartViewModel cartViewModel;
     private ProductAdapter productAdapter;
     private List<ProductResponse> rawProducts = new ArrayList<>();
+
+    // 🟢 PAGINATION STATE
+    private int currentPage = 0;
+    private boolean isLoading = false;
+    private boolean isLastPage = false;
+    private final int PAGE_SIZE = 20;
 
     private int sortIndex = 0;
     private final String[] sortOptions = {"Recommended", "Price: Low to High", "Price: High to Low", "Name"};
@@ -83,20 +92,59 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
             applyFilters();
         });
 
-        loadProducts();
+        // 🟢 FIX: Infinite Scroll Listener
+        binding.rvProductList.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > 0) { // If scrolling down
+                    GridLayoutManager layoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
+                    if (layoutManager != null) {
+                        int visibleItemCount = layoutManager.getChildCount();
+                        int totalItemCount = layoutManager.getItemCount();
+                        int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+
+                        if (!isLoading && !isLastPage) {
+                            if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                                currentPage++;
+                                loadProducts(currentPage);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        loadProducts(currentPage);
     }
 
-    private void loadProducts() {
-        productViewModel.fetchProducts().observe(this, resource -> {
+    private void loadProducts(int page) {
+        isLoading = true;
+        // 🟢 Fetch specific page
+        productViewModel.fetchProducts(page, PAGE_SIZE).observe(this, resource -> {
             if (resource == null) return;
             if (resource.status == Resource.Status.LOADING) {
-                binding.progressBar.setVisibility(View.VISIBLE);
+                if (page == 0) binding.progressBar.setVisibility(View.VISIBLE);
             } else if (resource.status == Resource.Status.SUCCESS) {
                 binding.progressBar.setVisibility(View.GONE);
-                rawProducts = resource.data != null ? resource.data : new ArrayList<>();
+                isLoading = false;
+
+                List<ProductResponse> newProducts = resource.data != null ? resource.data : new ArrayList<>();
+
+                // Agar 20 se kam products aaye hain, iska matlab list khatam ho gayi hai
+                if (newProducts.size() < PAGE_SIZE) {
+                    isLastPage = true;
+                }
+
+                if (page == 0) {
+                    rawProducts.clear(); // Naya search ya first load
+                }
+                rawProducts.addAll(newProducts); // Puraane products ke aage naye products jodna
                 applyFilters();
+
             } else if (resource.status == Resource.Status.ERROR) {
                 binding.progressBar.setVisibility(View.GONE);
+                isLoading = false;
                 Toast.makeText(ProductListActivity.this, resource.message, Toast.LENGTH_SHORT).show();
             }
         });
