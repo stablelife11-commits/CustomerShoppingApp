@@ -50,17 +50,9 @@ public class SessionManager {
         editor.apply();
     }
 
-    public String getUserEmail() {
-        return pref.getString(KEY_EMAIL, "");
-    }
-
-    public String getUserName() {
-        return pref.getString(KEY_NAME, "");
-    }
-
-    public String getUserRole() {
-        return pref.getString(KEY_ROLE, "");
-    }
+    public String getUserEmail() { return pref.getString(KEY_EMAIL, ""); }
+    public String getUserName() { return pref.getString(KEY_NAME, ""); }
+    public String getUserRole() { return pref.getString(KEY_ROLE, ""); }
 
     public void saveCustomerId(Long customerId) {
         if (customerId != null) {
@@ -72,8 +64,7 @@ public class SessionManager {
     }
 
     public Long getCustomerId() {
-        long id = pref.getLong(KEY_CUSTOMER_ID, -1L);
-        return id != -1L ? id : 1L; // Fallback to 1L if not explicitly set
+        return pref.getLong(KEY_CUSTOMER_ID, -1L); // 🟢 FIX: Ab 1L nahi uthayega
     }
 
     public void saveCart(List<CartItem> cartList) {
@@ -84,9 +75,7 @@ public class SessionManager {
 
     public List<CartItem> getCart() {
         String json = pref.getString(KEY_CART, null);
-        if (json == null) {
-            return new ArrayList<>();
-        }
+        if (json == null) return new ArrayList<>();
         Type type = new TypeToken<List<CartItem>>() {}.getType();
         List<CartItem> cart = gson.fromJson(json, type);
         return cart != null ? cart : new ArrayList<>();

@@ -39,6 +39,7 @@ public class AuthRepository {
                     AuthResponse auth = response.body();
                     sessionManager.saveAuthToken(auth.getToken());
                     sessionManager.saveUserDetails(auth.getEmail(), auth.getName(), auth.getRole());
+                    sessionManager.saveCustomerId(auth.getCustomerId()); // 🟢 NAYI LINE
                     result.setValue(Resource.success(auth));
                 } else {
                     String msg = "Login failed. Please check your credentials.";
@@ -70,6 +71,7 @@ public class AuthRepository {
                     AuthResponse auth = response.body();
                     sessionManager.saveAuthToken(auth.getToken());
                     sessionManager.saveUserDetails(auth.getEmail(), auth.getName(), auth.getRole());
+                    sessionManager.saveCustomerId(auth.getCustomerId()); // 🟢 NAYI LINE
                     result.setValue(Resource.success(auth));
                 } else {
                     result.setValue(Resource.error("Registration failed. Email may already be in use.", null));
