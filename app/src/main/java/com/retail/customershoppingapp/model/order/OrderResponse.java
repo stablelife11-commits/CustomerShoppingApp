@@ -1,11 +1,12 @@
 package com.retail.customershoppingapp.model.order;
 
 import com.google.gson.annotations.SerializedName;
-import java.io.Serializable;
-import java.math.BigDecimal;
+import java.io.Serializable; // 🟢 NAYA IMPORT
 import java.util.List;
 
+// 🟢 FIX: implements Serializable lagaya gaya hai
 public class OrderResponse implements Serializable {
+
     @SerializedName("id")
     private Long id;
 
@@ -16,59 +17,27 @@ public class OrderResponse implements Serializable {
     private String customerName;
 
     @SerializedName("totalAmount")
-    private BigDecimal totalAmount;
+    private Double totalAmount;
 
     @SerializedName("orderDate")
     private String orderDate;
 
+    @SerializedName("status")
+    private String status;
+
+    @SerializedName("deliveryAddress")
+    private String deliveryAddress;
+
     @SerializedName("items")
     private List<OrderItemResponse> items;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getCustomerName() {
-        return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
-
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
-    public String getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(String orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    public List<OrderItemResponse> getItems() {
-        return items;
-    }
-
-    public void setItems(List<OrderItemResponse> items) {
-        this.items = items;
-    }
+    // Getters
+    public Long getId() { return id; }
+    public Long getCustomerId() { return customerId; }
+    public String getCustomerName() { return customerName; }
+    public Double getTotalAmount() { return totalAmount; }
+    public String getOrderDate() { return orderDate; }
+    public String getStatus() { return status; }
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public List<OrderItemResponse> getItems() { return items; }
 }

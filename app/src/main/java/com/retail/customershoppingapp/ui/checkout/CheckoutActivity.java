@@ -7,18 +7,19 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.retail.customershoppingapp.MainActivity;
 import com.retail.customershoppingapp.databinding.ActivityCheckoutBinding;
 import com.retail.customershoppingapp.model.cart.CartItem;
 import com.retail.customershoppingapp.model.order.OrderItemRequest;
-import com.retail.customershoppingapp.model.order.OrderItemResponse;
-import com.retail.customershoppingapp.model.order.OrderResponse;
+import com.retail.customershoppingapp.model.order.OrderRequest;
 import com.retail.customershoppingapp.network.Resource;
-import com.retail.customershoppingapp.session.SessionManager;
 import com.retail.customershoppingapp.ui.cart.CartViewModel;
-import com.retail.customershoppingapp.ui.order.OrderItemAdapter;
 import com.retail.customershoppingapp.ui.order.OrderViewModel;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,8 +28,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private ActivityCheckoutBinding binding;
     private CartViewModel cartViewModel;
     private OrderViewModel orderViewModel;
-    private SessionManager sessionManager;
-    private OrderItemAdapter orderItemAdapter;
+    private CheckoutAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,81 +36,81 @@ public class CheckoutActivity extends AppCompatActivity {
         binding = ActivityCheckoutBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
-        orderViewModel = new ViewModelProvider(this).get(OrderViewModel.class);
-        sessionManager = new SessionManager(this);
-
         binding.toolbar.setNavigationOnClickListener(v -> finish());
 
-        orderItemAdapter = new OrderItemAdapter();
-        binding.rvCheckoutItems.setAdapter(orderItemAdapter);
+        cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
+        orderViewModel = new ViewModelProvider(this).get(OrderViewModel.class);
 
-        setupData();
+        adapter = new CheckoutAdapter();
+        binding.rvCheckoutItems.setLayoutManager(new LinearLayoutManager(this));
+        binding.rvCheckoutItems.setAdapter(adapter);
 
-        binding.btnPlaceOrder.setOnClickListener(v -> attemptPlaceOrder());
-    }
+        cartViewModel.getCartItems().observe(this, cartItems -> {
+            if (cartItems != null && !cartItems.isEmpty()) {
+                adapter.setCartItems(cartItems);
 
-    private void setupData() {
-        binding.etAddressName.setText(sessionManager.getUserName());
-        binding.tvCheckoutTotal.setText("₹" + cartViewModel.getSubtotal());
-
-        List<CartItem> cartItems = cartViewModel.getCartItems().getValue();
-        List<OrderItemResponse> previewItems = new ArrayList<>();
-        if (cartItems != null) {
-            for (CartItem ci : cartItems) {
-                OrderItemResponse item = new OrderItemResponse();
-                if (ci.getProduct() != null) {
-                    item.setProductId(ci.getProduct().getId());
-                    item.setProductName(ci.getProduct().getName());
+                // 🟢 PRO FIX: Total calculation using BigDecimal
+                BigDecimal total = BigDecimal.ZERO;
+                for (CartItem item : cartItems) {
+                    BigDecimal itemPrice = BigDecimal.ZERO;
+                    if (item.getVariant() != null && item.getVariant().getSellingPrice() != null) {
+                        itemPrice = item.getVariant().getSellingPrice();
+                    }
+                    BigDecimal quantity = BigDecimal.valueOf(item.getQuantity());
+                    total = total.add(itemPrice.multiply(quantity));
                 }
-                item.setQuantity(ci.getQuantity());
-                item.setPrice(ci.getTotalPrice());
-                previewItems.add(item);
+
+                // BigDecimal formatting without String.format
+                binding.tvTotalAmount.setText("₹" + total.setScale(2, RoundingMode.HALF_UP).toPlainString());
+            } else {
+                Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show();
+                finish();
             }
-        }
-        orderItemAdapter.setItems(previewItems);
+        });
+
+        binding.btnPlaceOrder.setOnClickListener(v -> placeOrder());
     }
 
-    private void attemptPlaceOrder() {
-        List<CartItem> cartItems = cartViewModel.getCartItems().getValue();
-        if (cartItems == null || cartItems.isEmpty()) {
-            Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show();
+    private void placeOrder() {
+        String address = binding.etDeliveryAddress.getText() != null ? binding.etDeliveryAddress.getText().toString().trim() : "";
+
+        if (address.isEmpty()) {
+            binding.etDeliveryAddress.setError("Please enter delivery address");
+            binding.etDeliveryAddress.requestFocus();
             return;
         }
 
+        List<CartItem> cartItems = cartViewModel.getCartItems().getValue();
+        if (cartItems == null || cartItems.isEmpty()) return;
+
         List<OrderItemRequest> orderItems = new ArrayList<>();
-        for (CartItem ci : cartItems) {
-            Long variantId = (ci.getVariant() != null && ci.getVariant().getId() != null) ?
-                    ci.getVariant().getId() : 1L; // Fallback to 1L if no variant
-            orderItems.add(new OrderItemRequest(variantId, ci.getQuantity()));
+        for (CartItem item : cartItems) {
+            Long variantId = (item.getVariant() != null) ? item.getVariant().getId() : 0L;
+            orderItems.add(new OrderItemRequest(variantId, item.getQuantity()));
         }
 
-        Long customerId = sessionManager.getCustomerId();
+        Long dummyCustomerId = 1L; // Managed by JWT in backend now
+        OrderRequest request = new OrderRequest(dummyCustomerId, address, orderItems);
 
+        binding.progressBar.setVisibility(View.VISIBLE);
         binding.btnPlaceOrder.setEnabled(false);
-        binding.btnPlaceOrder.setText("Placing Order...");
 
-        orderViewModel.createOrder(customerId, orderItems).observe(this, resource -> {
-            if (resource == null) return;
-
-            if (resource.status == Resource.Status.LOADING) {
-                binding.btnPlaceOrder.setEnabled(false);
-            } else if (resource.status == Resource.Status.SUCCESS) {
-                cartViewModel.clearCart();
-
-                OrderResponse response = resource.data;
-                String orderRef = response != null && response.getId() != null ?
-                        "RF-" + response.getId() : "RF-" + System.currentTimeMillis() % 10000;
-
-                Intent intent = new Intent(CheckoutActivity.this, OrderSuccessActivity.class);
-                intent.putExtra("order_ref", orderRef);
-                intent.putExtra("order_data", response);
-                startActivity(intent);
-                finish();
-            } else if (resource.status == Resource.Status.ERROR) {
+        orderViewModel.createOrder(request).observe(this, resource -> {
+            if (resource != null) {
+                binding.progressBar.setVisibility(View.GONE);
                 binding.btnPlaceOrder.setEnabled(true);
-                binding.btnPlaceOrder.setText("Place Order");
-                Toast.makeText(CheckoutActivity.this, resource.message, Toast.LENGTH_LONG).show();
+
+                if (resource.status == Resource.Status.SUCCESS) {
+                    Toast.makeText(this, "Order Placed Successfully!", Toast.LENGTH_SHORT).show();
+                    cartViewModel.clearCart();
+
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                } else if (resource.status == Resource.Status.ERROR) {
+                    Toast.makeText(this, resource.message, Toast.LENGTH_LONG).show();
+                }
             }
         });
     }

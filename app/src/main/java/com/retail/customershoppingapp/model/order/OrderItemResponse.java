@@ -11,6 +11,16 @@ public class OrderItemResponse implements Serializable {
     @SerializedName("productName")
     private String productName;
 
+    // 🟢 NAYA: Variant ID, Size aur Color
+    @SerializedName("variantId")
+    private Long variantId;
+
+    @SerializedName("size")
+    private String size;
+
+    @SerializedName("color")
+    private String color;
+
     @SerializedName("quantity")
     private Integer quantity;
 
@@ -31,6 +41,31 @@ public class OrderItemResponse implements Serializable {
 
     public void setProductName(String productName) {
         this.productName = productName;
+    }
+
+    // 🟢 NAYA Getters & Setters
+    public Long getVariantId() {
+        return variantId;
+    }
+
+    public void setVariantId(Long variantId) {
+        this.variantId = variantId;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 
     public Integer getQuantity() {

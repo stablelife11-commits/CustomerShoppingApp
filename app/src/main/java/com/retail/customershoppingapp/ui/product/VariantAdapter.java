@@ -1,44 +1,59 @@
 package com.retail.customershoppingapp.ui.product;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.retail.customershoppingapp.R;
 import com.retail.customershoppingapp.databinding.ItemVariantChipBinding;
 import com.retail.customershoppingapp.model.product.VariantResponse;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class VariantAdapter extends RecyclerView.Adapter<VariantAdapter.ViewHolder> {
 
-    public interface OnVariantSelectedListener {
-        void onVariantSelected(VariantResponse variant);
+    public interface OnVariantClickListener {
+        void onVariantClick(VariantResponse variant);
     }
 
     private List<VariantResponse> variants = new ArrayList<>();
-    private VariantResponse selectedVariant;
-    private final OnVariantSelectedListener listener;
+    // 🟢 MULTI-SELECTION MAP: Variant ID ke sath uski Quantity save karega
+    private final HashMap<Long, Integer> selectedQuantities = new HashMap<>();
+    private final OnVariantClickListener listener;
 
-    public VariantAdapter(OnVariantSelectedListener listener) {
+    public VariantAdapter(OnVariantClickListener listener) {
         this.listener = listener;
     }
 
     public void setVariants(List<VariantResponse> variants) {
         this.variants = variants != null ? variants : new ArrayList<>();
-        if (!this.variants.isEmpty()) {
-            this.selectedVariant = this.variants.get(0);
-            if (listener != null) {
-                listener.onVariantSelected(selectedVariant);
-            }
-        }
+        this.selectedQuantities.clear();
         notifyDataSetChanged();
     }
 
-    public VariantResponse getSelectedVariant() {
-        return selectedVariant;
+    // 🟢 Activity ko map bhejne ke liye
+    public HashMap<Long, Integer> getSelectedQuantities() {
+        return selectedQuantities;
+    }
+
+    public void clearSelections() {
+        selectedQuantities.clear();
+        notifyDataSetChanged();
+    }
+
+    // 🟢 NAYA LOGIC: Multiple items ki quantity update karna
+    public void updateSelection(VariantResponse variant, int qty) {
+        if (qty > 0) {
+            selectedQuantities.put(variant.getId(), qty);
+        } else {
+            selectedQuantities.remove(variant.getId()); // Agar user 0 select kare to hata do
+        }
+        notifyDataSetChanged(); // UI refresh
     }
 
     @NonNull
@@ -69,28 +84,35 @@ public class VariantAdapter extends RecyclerView.Adapter<VariantAdapter.ViewHold
         }
 
         void bind(VariantResponse variant) {
-            StringBuilder label = new StringBuilder();
-            if (variant.getSize() != null && !variant.getSize().isEmpty()) {
-                label.append("Size: ").append(variant.getSize()).append(" ");
+            String sizeLabel = (variant.getSize() != null && !variant.getSize().isEmpty()) ? variant.getSize() : "Standard";
+            if (variant.getColor() != null && !variant.getColor().isEmpty() && !sizeLabel.equals("Standard")) {
+                sizeLabel += " (" + variant.getColor() + ")";
             }
-            if (variant.getColor() != null && !variant.getColor().isEmpty()) {
-                label.append("Color: ").append(variant.getColor()).append(" ");
-            }
-            if (variant.getSellingPrice() != null) {
-                label.append("(₹").append(variant.getSellingPrice()).append(")");
+            binding.tvSizeText.setText(sizeLabel);
+
+            // 🟢 Check if this specific variant is in our HashMap
+            boolean isSelected = selectedQuantities.containsKey(variant.getId());
+
+            if (isSelected) {
+                // Selected UI
+                binding.cardVariant.setStrokeColor(binding.getRoot().getContext().getColor(R.color.primary));
+                binding.cardVariant.setStrokeWidth(4);
+                binding.cardVariant.setCardBackgroundColor(binding.getRoot().getContext().getColor(R.color.accent_light));
+                binding.tvSelectedQty.setVisibility(View.VISIBLE);
+
+                int qty = selectedQuantities.get(variant.getId());
+                binding.tvSelectedQty.setText("Qty: " + qty);
+            } else {
+                // Normal UI
+                binding.cardVariant.setStrokeColor(binding.getRoot().getContext().getColor(R.color.border));
+                binding.cardVariant.setStrokeWidth(2);
+                binding.cardVariant.setCardBackgroundColor(binding.getRoot().getContext().getColor(R.color.surface));
+                binding.tvSelectedQty.setVisibility(View.GONE);
             }
 
-            binding.chipVariant.setText(label.toString());
-
-            boolean isSelected = selectedVariant != null && selectedVariant.getId() != null &&
-                    selectedVariant.getId().equals(variant.getId());
-            binding.chipVariant.setChecked(isSelected);
-
-            binding.chipVariant.setOnClickListener(v -> {
-                selectedVariant = variant;
-                notifyDataSetChanged();
+            binding.getRoot().setOnClickListener(v -> {
                 if (listener != null) {
-                    listener.onVariantSelected(variant);
+                    listener.onVariantClick(variant);
                 }
             });
         }
