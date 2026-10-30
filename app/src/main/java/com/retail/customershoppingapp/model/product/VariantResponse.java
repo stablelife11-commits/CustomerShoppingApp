@@ -26,6 +26,18 @@ public class VariantResponse implements Serializable {
     @SerializedName("stock")
     private Integer stock;
 
+    @SerializedName("minimumOrderQuantity")
+    private Integer minimumOrderQuantity;
+
+    @SerializedName("packSize")
+    private Integer packSize;
+
+    @SerializedName("hsnCode")
+    private String hsnCode;
+
+    @SerializedName("gstPercentage")
+    private BigDecimal gstPercentage;
+
     public Long getId() {
         return id;
     }
@@ -59,7 +71,7 @@ public class VariantResponse implements Serializable {
     }
 
     public BigDecimal getSellingPrice() {
-        return sellingPrice;
+        return sellingPrice != null ? sellingPrice : BigDecimal.ZERO;
     }
 
     public void setSellingPrice(BigDecimal sellingPrice) {
@@ -75,10 +87,42 @@ public class VariantResponse implements Serializable {
     }
 
     public Integer getStock() {
-        return stock;
+        return stock != null ? stock : 0;
     }
 
     public void setStock(Integer stock) {
         this.stock = stock;
+    }
+
+    public int getMinimumOrderQuantity() {
+        return minimumOrderQuantity != null && minimumOrderQuantity > 0 ? minimumOrderQuantity : 1;
+    }
+
+    public void setMinimumOrderQuantity(Integer minimumOrderQuantity) {
+        this.minimumOrderQuantity = minimumOrderQuantity;
+    }
+
+    public int getPackSize() {
+        return packSize != null && packSize > 0 ? packSize : 1;
+    }
+
+    public void setPackSize(Integer packSize) {
+        this.packSize = packSize;
+    }
+
+    public String getHsnCode() {
+        return hsnCode;
+    }
+
+    public void setHsnCode(String hsnCode) {
+        this.hsnCode = hsnCode;
+    }
+
+    public BigDecimal getGstPercentage() {
+        return gstPercentage != null ? gstPercentage : BigDecimal.ZERO;
+    }
+
+    public void setGstPercentage(BigDecimal gstPercentage) {
+        this.gstPercentage = gstPercentage;
     }
 }

@@ -22,12 +22,15 @@ public class OrderViewModel extends AndroidViewModel {
         repository = new OrderRepository(application);
     }
 
-    // 🟢 FIX: Ab ye naya OrderRequest (Address ke sath) accept karega
-    public LiveData<Resource<OrderResponse>> createOrder(OrderRequest request) {
-        return repository.createOrder(request);
+    public LiveData<Resource<List<OrderResponse>>> checkoutOrders(OrderRequest request) {
+        return repository.checkoutOrders(request);
     }
 
     public LiveData<Resource<List<OrderResponse>>> getOrders() {
         return repository.getOrders();
+    }
+
+    public LiveData<Resource<OrderResponse>> cancelOrder(Long orderId) {
+        return repository.cancelOrder(orderId);
     }
 }

@@ -2,6 +2,7 @@ package com.retail.customershoppingapp.ui.cart;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -10,6 +11,7 @@ import com.bumptech.glide.Glide;
 import com.retail.customershoppingapp.R;
 import com.retail.customershoppingapp.databinding.ItemCartItemBinding;
 import com.retail.customershoppingapp.model.cart.CartItem;
+import com.retail.customershoppingapp.model.product.VariantResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,18 +66,24 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
             binding.tvCartName.setText(item.getProduct() != null && item.getProduct().getName() != null ?
                     item.getProduct().getName() : "Item");
 
-            StringBuilder variantInfo = new StringBuilder("Variant: ");
-            if (item.getVariant() != null) {
-                if (item.getVariant().getSize() != null) {
-                    variantInfo.append("Size: ").append(item.getVariant().getSize()).append(" ");
+            VariantResponse v = item.getVariant();
+            int moq = v != null ? v.getMinimumOrderQuantity() : 1;
+            int packSize = v != null ? v.getPackSize() : 1;
+            int maxStock = v != null ? v.getStock() : 9999;
+
+            StringBuilder variantInfo = new StringBuilder();
+            if (v != null) {
+                if (v.getSize() != null) {
+                    variantInfo.append("Size: ").append(v.getSize()).append(" ");
                 }
-                if (item.getVariant().getColor() != null) {
-                    variantInfo.append("Color: ").append(item.getVariant().getColor());
+                if (v.getColor() != null) {
+                    variantInfo.append("| ").append(v.getColor()).append(" ");
                 }
+                variantInfo.append("(MOQ: ").append(moq).append(", Pack: ").append(packSize).append(")");
             } else {
                 variantInfo.append("Standard");
             }
-            binding.tvCartVariant.setText(variantInfo.toString());
+            binding.tvCartVariant.setText(variantInfo.toString().trim());
 
             binding.tvCartPrice.setText("₹" + item.getTotalPrice());
             binding.tvQuantity.setText(String.valueOf(item.getQuantity()));
@@ -91,19 +99,33 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
                 binding.ivCartProduct.setImageResource(R.drawable.ic_launcher_background);
             }
 
-            binding.btnPlus.setOnClickListener(v -> {
+            binding.btnPlus.setOnClickListener(vView -> {
                 if (listener != null) {
-                    listener.onQuantityChanged(item, item.getQuantity() + 1);
+                    int nextQty = item.getQuantity() + packSize;
+                    if (nextQty > maxStock) {
+                        Toast.makeText(binding.getRoot().getContext(),
+                                "Only " + maxStock + " units available in stock",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    listener.onQuantityChanged(item, nextQty);
                 }
             });
 
-            binding.btnMinus.setOnClickListener(v -> {
+            binding.btnMinus.setOnClickListener(vView -> {
                 if (listener != null) {
-                    listener.onQuantityChanged(item, item.getQuantity() - 1);
+                    int prevQty = item.getQuantity() - packSize;
+                    if (prevQty < moq) {
+                        Toast.makeText(binding.getRoot().getContext(),
+                                "Minimum Order Quantity is " + moq + " units (Use trash icon to remove)",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    listener.onQuantityChanged(item, prevQty);
                 }
             });
 
-            binding.btnRemove.setOnClickListener(v -> {
+            binding.btnRemove.setOnClickListener(vView -> {
                 if (listener != null) {
                     listener.onItemRemoved(item);
                 }

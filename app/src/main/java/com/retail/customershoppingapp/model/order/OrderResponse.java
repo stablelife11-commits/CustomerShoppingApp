@@ -1,14 +1,16 @@
 package com.retail.customershoppingapp.model.order;
 
 import com.google.gson.annotations.SerializedName;
-import java.io.Serializable; // 🟢 NAYA IMPORT
+import java.io.Serializable;
 import java.util.List;
 
-// 🟢 FIX: implements Serializable lagaya gaya hai
 public class OrderResponse implements Serializable {
 
     @SerializedName("id")
     private Long id;
+
+    @SerializedName("sellerId")
+    private Long sellerId;
 
     @SerializedName("customerId")
     private Long customerId;
@@ -16,8 +18,17 @@ public class OrderResponse implements Serializable {
     @SerializedName("customerName")
     private String customerName;
 
+    @SerializedName("customerMobile")
+    private String customerMobile;
+
     @SerializedName("totalAmount")
     private Double totalAmount;
+
+    @SerializedName("paidAmount")
+    private Double paidAmount;
+
+    @SerializedName("paymentStatus")
+    private String paymentStatus;
 
     @SerializedName("orderDate")
     private String orderDate;
@@ -31,13 +42,16 @@ public class OrderResponse implements Serializable {
     @SerializedName("items")
     private List<OrderItemResponse> items;
 
-    // Getters
     public Long getId() { return id; }
+    public Long getSellerId() { return sellerId; }
     public Long getCustomerId() { return customerId; }
     public String getCustomerName() { return customerName; }
-    public Double getTotalAmount() { return totalAmount; }
+    public String getCustomerMobile() { return customerMobile; }
+    public Double getTotalAmount() { return totalAmount != null ? totalAmount : 0.0; }
+    public Double getPaidAmount() { return paidAmount != null ? paidAmount : 0.0; }
+    public String getPaymentStatus() { return paymentStatus != null ? paymentStatus : "UNPAID"; }
     public String getOrderDate() { return orderDate; }
-    public String getStatus() { return status; }
+    public String getStatus() { return status != null ? status : "PLACED"; }
     public String getDeliveryAddress() { return deliveryAddress; }
     public List<OrderItemResponse> getItems() { return items; }
 }

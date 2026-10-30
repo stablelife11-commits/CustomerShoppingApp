@@ -23,8 +23,8 @@ public class AuthViewModel extends AndroidViewModel {
         return authRepository.login(email, password);
     }
 
-    public LiveData<Resource<AuthResponse>> register(String name, String email, String password) {
-        return authRepository.register(name, email, password);
+    public LiveData<Resource<AuthResponse>> register(String name, String email, String password, String mobile) {
+        return authRepository.register(name, email, password, mobile);
     }
 
     public boolean isLoggedIn() {

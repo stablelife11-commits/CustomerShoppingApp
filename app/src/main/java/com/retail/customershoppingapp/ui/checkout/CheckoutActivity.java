@@ -9,12 +9,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.retail.customershoppingapp.MainActivity;
 import com.retail.customershoppingapp.databinding.ActivityCheckoutBinding;
 import com.retail.customershoppingapp.model.cart.CartItem;
 import com.retail.customershoppingapp.model.order.OrderItemRequest;
 import com.retail.customershoppingapp.model.order.OrderRequest;
+import com.retail.customershoppingapp.model.order.OrderResponse;
 import com.retail.customershoppingapp.network.Resource;
+import com.retail.customershoppingapp.session.SessionManager;
 import com.retail.customershoppingapp.ui.cart.CartViewModel;
 import com.retail.customershoppingapp.ui.order.OrderViewModel;
 
@@ -49,7 +50,6 @@ public class CheckoutActivity extends AppCompatActivity {
             if (cartItems != null && !cartItems.isEmpty()) {
                 adapter.setCartItems(cartItems);
 
-                // 🟢 PRO FIX: Total calculation using BigDecimal
                 BigDecimal total = BigDecimal.ZERO;
                 for (CartItem item : cartItems) {
                     BigDecimal itemPrice = BigDecimal.ZERO;
@@ -60,10 +60,8 @@ public class CheckoutActivity extends AppCompatActivity {
                     total = total.add(itemPrice.multiply(quantity));
                 }
 
-                // BigDecimal formatting without String.format
                 binding.tvTotalAmount.setText("₹" + total.setScale(2, RoundingMode.HALF_UP).toPlainString());
             } else {
-                Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show();
                 finish();
             }
         });
@@ -89,28 +87,40 @@ public class CheckoutActivity extends AppCompatActivity {
             orderItems.add(new OrderItemRequest(variantId, item.getQuantity()));
         }
 
-        Long dummyCustomerId = 1L; // Managed by JWT in backend now
-        OrderRequest request = new OrderRequest(dummyCustomerId, address, orderItems);
+        SessionManager sm = new SessionManager(this);
+        Long customerId = sm.getCustomerId() > 0 ? sm.getCustomerId() : null;
+        OrderRequest request = new OrderRequest(customerId, address, orderItems);
 
         binding.progressBar.setVisibility(View.VISIBLE);
         binding.btnPlaceOrder.setEnabled(false);
 
-        orderViewModel.createOrder(request).observe(this, resource -> {
-            if (resource != null) {
+        orderViewModel.checkoutOrders(request).observe(this, resource -> {
+            if (resource == null) return;
+
+            if (resource.status == Resource.Status.LOADING) {
+                binding.progressBar.setVisibility(View.VISIBLE);
+            } else if (resource.status == Resource.Status.SUCCESS) {
                 binding.progressBar.setVisibility(View.GONE);
                 binding.btnPlaceOrder.setEnabled(true);
 
-                if (resource.status == Resource.Status.SUCCESS) {
-                    Toast.makeText(this, "Order Placed Successfully!", Toast.LENGTH_SHORT).show();
-                    cartViewModel.clearCart();
+                List<OrderResponse> createdOrders = resource.data;
+                cartViewModel.clearCart();
 
-                    Intent intent = new Intent(this, MainActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-                } else if (resource.status == Resource.Status.ERROR) {
-                    Toast.makeText(this, resource.message, Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(this, OrderSuccessActivity.class);
+                if (createdOrders != null && !createdOrders.isEmpty()) {
+                    OrderResponse first = createdOrders.get(0);
+                    String refText = createdOrders.size() == 1
+                            ? "Order #" + first.getId()
+                            : createdOrders.size() + " Seller Orders Placed (First: #" + first.getId() + ")";
+                    intent.putExtra("order_ref", refText);
+                    intent.putExtra("order_data", first);
                 }
+                startActivity(intent);
+                finish();
+            } else if (resource.status == Resource.Status.ERROR) {
+                binding.progressBar.setVisibility(View.GONE);
+                binding.btnPlaceOrder.setEnabled(true);
+                Toast.makeText(this, resource.message, Toast.LENGTH_LONG).show();
             }
         });
     }

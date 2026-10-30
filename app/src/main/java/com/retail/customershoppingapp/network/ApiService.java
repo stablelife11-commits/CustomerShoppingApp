@@ -14,9 +14,10 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
-import retrofit2.http.Query; // 🟢 NAYA IMPORT
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -27,19 +28,27 @@ public interface ApiService {
     @POST("api/v1/auth/register")
     Call<AuthResponse> register(@Body RegisterRequest request);
 
-    // 🟢 FIX: Pagination support added
+    // Products with pagination
     @GET("api/v1/products")
     Call<List<ProductResponse>> getProducts(@Query("page") int page, @Query("size") int size);
 
     @GET("api/v1/products/{id}")
     Call<ProductResponse> getProductById(@Path("id") Long id);
 
-    // Orders
+    // Multi-Seller Checkout (returns all split orders created across sellers)
+    @POST("api/v1/orders/checkout")
+    Call<List<OrderResponse>> checkoutOrders(@Body OrderRequest request);
+
+    // Legacy single-order endpoint
     @POST("api/v1/orders")
     Call<OrderResponse> createOrder(@Body OrderRequest request);
 
     @GET("api/v1/orders/my-orders")
     Call<List<OrderResponse>> getOrders();
+
+    // Buyer Order Cancellation (allowed when order is PLACED)
+    @PATCH("api/v1/orders/{id}/status")
+    Call<OrderResponse> updateOrderStatus(@Path("id") Long id, @Query("status") String status);
 
     // Customers
     @GET("api/v1/customers")

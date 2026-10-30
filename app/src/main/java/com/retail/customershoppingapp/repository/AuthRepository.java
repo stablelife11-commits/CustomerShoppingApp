@@ -39,13 +39,10 @@ public class AuthRepository {
                     AuthResponse auth = response.body();
                     sessionManager.saveAuthToken(auth.getToken());
                     sessionManager.saveUserDetails(auth.getEmail(), auth.getName(), auth.getRole());
-                    sessionManager.saveCustomerId(auth.getCustomerId()); // 🟢 NAYI LINE
+                    sessionManager.saveCustomerId(auth.getCustomerId());
                     result.setValue(Resource.success(auth));
                 } else {
-                    String msg = "Login failed. Please check your credentials.";
-                    if (response.code() == 401) {
-                        msg = "Invalid email or password.";
-                    }
+                    String msg = RetrofitClient.extractErrorMessage(response, "Invalid email or password.");
                     result.setValue(Resource.error(msg, null));
                 }
             }
@@ -59,11 +56,11 @@ public class AuthRepository {
         return result;
     }
 
-    public LiveData<Resource<AuthResponse>> register(String name, String email, String password) {
+    public LiveData<Resource<AuthResponse>> register(String name, String email, String password, String mobile) {
         MutableLiveData<Resource<AuthResponse>> result = new MutableLiveData<>();
         result.setValue(Resource.loading(null));
 
-        RegisterRequest request = new RegisterRequest(name, email, password, "BUYER");
+        RegisterRequest request = new RegisterRequest(name, email, password, mobile);
         apiService.register(request).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
@@ -71,10 +68,11 @@ public class AuthRepository {
                     AuthResponse auth = response.body();
                     sessionManager.saveAuthToken(auth.getToken());
                     sessionManager.saveUserDetails(auth.getEmail(), auth.getName(), auth.getRole());
-                    sessionManager.saveCustomerId(auth.getCustomerId()); // 🟢 NAYI LINE
+                    sessionManager.saveCustomerId(auth.getCustomerId());
                     result.setValue(Resource.success(auth));
                 } else {
-                    result.setValue(Resource.error("Registration failed. Email may already be in use.", null));
+                    String msg = RetrofitClient.extractErrorMessage(response, "Registration failed.");
+                    result.setValue(Resource.error(msg, null));
                 }
             }
 

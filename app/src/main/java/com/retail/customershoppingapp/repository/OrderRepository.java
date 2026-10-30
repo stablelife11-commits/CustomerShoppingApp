@@ -25,22 +25,23 @@ public class OrderRepository {
         this.apiService = RetrofitClient.getInstance(context).getApi();
     }
 
-    public LiveData<Resource<OrderResponse>> createOrder(OrderRequest orderRequest) {
-        MutableLiveData<Resource<OrderResponse>> result = new MutableLiveData<>();
+    public LiveData<Resource<List<OrderResponse>>> checkoutOrders(OrderRequest orderRequest) {
+        MutableLiveData<Resource<List<OrderResponse>>> result = new MutableLiveData<>();
         result.setValue(Resource.loading(null));
 
-        apiService.createOrder(orderRequest).enqueue(new Callback<OrderResponse>() {
+        apiService.checkoutOrders(orderRequest).enqueue(new Callback<List<OrderResponse>>() {
             @Override
-            public void onResponse(@NonNull Call<OrderResponse> call, @NonNull Response<OrderResponse> response) {
+            public void onResponse(@NonNull Call<List<OrderResponse>> call, @NonNull Response<List<OrderResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     result.setValue(Resource.success(response.body()));
                 } else {
-                    result.setValue(Resource.error("Failed to place order. Status: " + response.code(), null));
+                    String err = RetrofitClient.extractErrorMessage(response, "Failed to place order");
+                    result.setValue(Resource.error(err, null));
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<OrderResponse> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<OrderResponse>> call, @NonNull Throwable t) {
                 result.setValue(Resource.error("Network error while placing order: " + t.getLocalizedMessage(), null));
             }
         });
@@ -58,12 +59,37 @@ public class OrderRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     result.setValue(Resource.success(response.body()));
                 } else {
-                    result.setValue(Resource.error("Unable to load orders.", null));
+                    String err = RetrofitClient.extractErrorMessage(response, "Unable to load orders");
+                    result.setValue(Resource.error(err, null));
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<OrderResponse>> call, @NonNull Throwable t) {
+                result.setValue(Resource.error("Network error: " + t.getLocalizedMessage(), null));
+            }
+        });
+
+        return result;
+    }
+
+    public LiveData<Resource<OrderResponse>> cancelOrder(Long orderId) {
+        MutableLiveData<Resource<OrderResponse>> result = new MutableLiveData<>();
+        result.setValue(Resource.loading(null));
+
+        apiService.updateOrderStatus(orderId, "CANCELLED").enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<OrderResponse> call, @NonNull Response<OrderResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    result.setValue(Resource.success(response.body()));
+                } else {
+                    String err = RetrofitClient.extractErrorMessage(response, "Could not cancel order");
+                    result.setValue(Resource.error(err, null));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<OrderResponse> call, @NonNull Throwable t) {
                 result.setValue(Resource.error("Network error: " + t.getLocalizedMessage(), null));
             }
         });

@@ -6,6 +6,9 @@ public class AuthResponse {
     @SerializedName("token")
     private String token;
 
+    @SerializedName("userId")
+    private Long userId;
+
     @SerializedName("email")
     private String email;
 
@@ -16,10 +19,13 @@ public class AuthResponse {
     private String role;
 
     @SerializedName(value = "customerId", alternate = {"id"})
-    private Long customerId; // 🟢 NAYA FIELD
+    private Long customerId;
 
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }

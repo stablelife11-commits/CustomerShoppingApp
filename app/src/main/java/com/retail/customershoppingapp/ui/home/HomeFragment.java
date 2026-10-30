@@ -136,11 +136,17 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     @Override
     public void onAddToCartClick(ProductResponse product) {
         if (product.getVariants() != null && !product.getVariants().isEmpty()) {
-            cartViewModel.addToCart(product, product.getVariants().get(0), 1);
+            com.retail.customershoppingapp.model.product.VariantResponse firstVar = product.getVariants().get(0);
+            int moq = firstVar.getMinimumOrderQuantity();
+            if (firstVar.getStock() < moq) {
+                Toast.makeText(requireContext(), "Out of stock for minimum wholesale quantity (" + moq + ")", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            cartViewModel.addToCart(product, firstVar, moq);
+            Toast.makeText(requireContext(), "Added " + moq + " unit(s) (MOQ) to Cart", Toast.LENGTH_SHORT).show();
         } else {
-            cartViewModel.addToCart(product, null, 1);
+            Toast.makeText(requireContext(), "No variants available", Toast.LENGTH_SHORT).show();
         }
-        Toast.makeText(requireContext(), "Added to Cart", Toast.LENGTH_SHORT).show();
     }
 
     @Override

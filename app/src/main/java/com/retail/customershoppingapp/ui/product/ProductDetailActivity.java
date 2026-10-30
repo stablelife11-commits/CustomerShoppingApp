@@ -18,6 +18,7 @@ import com.retail.customershoppingapp.ui.checkout.CheckoutActivity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class ProductDetailActivity extends AppCompatActivity implements VariantAdapter.OnVariantClickListener {
 
@@ -53,8 +54,23 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
         binding.tvDetailBrand.setText(product.getBrand() != null && !product.getBrand().isEmpty() ?
                 product.getBrand().toUpperCase() : "RETAIL FLOW");
         binding.tvDetailName.setText(product.getName() != null ? product.getName() : "Product");
-        binding.tvDetailDesc.setText(product.getDescription() != null && !product.getDescription().isEmpty() ?
-                product.getDescription() : "No detailed description provided.");
+
+        StringBuilder descBuilder = new StringBuilder();
+        if (product.getDescription() != null && !product.getDescription().isEmpty()) {
+            descBuilder.append(product.getDescription()).append("\n\n");
+        }
+        if (product.getVariants() != null && !product.getVariants().isEmpty()) {
+            VariantResponse v0 = product.getVariants().get(0);
+            descBuilder.append("• Wholesale MOQ: ").append(v0.getMinimumOrderQuantity()).append(" units\n")
+                    .append("• Pack / Set Size: ").append(v0.getPackSize()).append(" units per pack");
+            if (v0.getGstPercentage() != null && v0.getGstPercentage().doubleValue() > 0) {
+                descBuilder.append("\n• GST: ").append(v0.getGstPercentage().stripTrailingZeros().toPlainString()).append("%");
+            }
+            if (v0.getHsnCode() != null && !v0.getHsnCode().isEmpty()) {
+                descBuilder.append(" (HSN: ").append(v0.getHsnCode()).append(")");
+            }
+        }
+        binding.tvDetailDesc.setText(descBuilder.toString().trim());
 
         binding.tvDetailPrice.setText("₹" + product.getMinPrice());
 
@@ -64,7 +80,7 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
         List<String> images = product.getImageUrls();
         if (images == null || images.isEmpty()) {
             images = new ArrayList<>();
-            images.add(""); // Placeholder
+            images.add("");
         }
         imageCarouselAdapter.setImageUrls(images);
 
@@ -77,17 +93,15 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
             binding.layoutSelectSize.setVisibility(View.GONE);
         }
 
-        // 🟢 BULK ADD TO CART
         binding.btnDetailAddCart.setOnClickListener(v -> {
             HashMap<Long, Integer> selections = variantAdapter.getSelectedQuantities();
 
             if (selections.isEmpty()) {
-                Toast.makeText(this, "Please select at least one size", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please tap a size chip above to select quantity", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             int totalItemsAdded = 0;
-            // Iterate and add all selected sizes to Cart
             for (VariantResponse vResponse : product.getVariants()) {
                 if (selections.containsKey(vResponse.getId())) {
                     int qty = selections.get(vResponse.getId());
@@ -96,16 +110,15 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
                 }
             }
 
-            Toast.makeText(this, "Added " + totalItemsAdded + " items to Cart!", Toast.LENGTH_SHORT).show();
-            variantAdapter.clearSelections(); // Cart mein dalne ke baad selection clear kar do
+            Toast.makeText(this, "Added " + totalItemsAdded + " wholesale units to Cart!", Toast.LENGTH_SHORT).show();
+            variantAdapter.clearSelections();
         });
 
-        // 🟢 BULK BUY NOW
         binding.btnDetailBuyNow.setOnClickListener(v -> {
             HashMap<Long, Integer> selections = variantAdapter.getSelectedQuantities();
 
             if (selections.isEmpty()) {
-                Toast.makeText(this, "Please select at least one size", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please tap a size chip above to select quantity", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -122,26 +135,52 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
 
     @Override
     public void onVariantClick(VariantResponse variant) {
-        // 🟢 "0 (Remove)" option add kiya taaki select karne ke baad deselect bhi kar sakein
-        String[] quantities = {"0 (Remove)", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
+        int stock = variant.getStock();
+        int moq = variant.getMinimumOrderQuantity();
+        int packSize = variant.getPackSize();
+
+        if (stock < moq) {
+            Toast.makeText(this,
+                    "Insufficient stock (" + stock + " available, MOQ is " + moq + ")",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        List<Integer> validQuantities = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+
+        validQuantities.add(0);
+        labels.add("0 (Remove Selection)");
+
+        // Generate up to 15 wholesale quantity steps starting at MOQ and stepping by packSize
+        int maxSteps = 15;
+        int stepCount = 0;
+        for (int q = moq; q <= stock && stepCount < maxSteps; q += packSize) {
+            validQuantities.add(q);
+            if (packSize > 1) {
+                labels.add(String.format(Locale.getDefault(), "%d units (%d packs × %d) — ₹%.2f",
+                        q, q / packSize, packSize,
+                        variant.getSellingPrice().doubleValue() * q));
+            } else {
+                labels.add(String.format(Locale.getDefault(), "%d units — ₹%.2f",
+                        q, variant.getSellingPrice().doubleValue() * q));
+            }
+            stepCount++;
+        }
+
+        String title = String.format(Locale.getDefault(),
+                "Size %s (MOQ: %d | Pack: %d | Stock: %d)",
+                variant.getSize() != null ? variant.getSize() : "Std",
+                moq, packSize, stock);
 
         new AlertDialog.Builder(this)
-                .setTitle("Select Quantity (Size: " + variant.getSize() + ")")
-                .setItems(quantities, (dialog, which) -> {
-                    int qty = which; // Array index: 0 = Remove, 1 = Qty 1, 2 = Qty 2...
+                .setTitle(title)
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
+                    int selectedQty = validQuantities.get(which);
+                    variantAdapter.updateSelection(variant, selectedQty);
 
-                    // Stock check
-                    if (variant.getStock() != null && qty > variant.getStock()) {
-                        Toast.makeText(this, "Only " + variant.getStock() + " left in stock!", Toast.LENGTH_LONG).show();
-                        qty = variant.getStock();
-                    }
-
-                    // Adapter mein map update karein
-                    variantAdapter.updateSelection(variant, qty);
-
-                    // Price display update (Jo aakhri size select hoga uska price dikhega)
-                    if (variant.getSellingPrice() != null && qty > 0) {
-                        binding.tvDetailPrice.setText("₹" + variant.getSellingPrice());
+                    if (variant.getSellingPrice() != null && selectedQty > 0) {
+                        binding.tvDetailPrice.setText("₹" + variant.getSellingPrice() + " / unit");
                     } else if (variantAdapter.getSelectedQuantities().isEmpty()) {
                         binding.tvDetailPrice.setText("₹" + product.getMinPrice());
                     }
