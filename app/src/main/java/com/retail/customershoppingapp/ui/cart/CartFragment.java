@@ -5,9 +5,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -70,6 +72,25 @@ public class CartFragment extends Fragment implements CartAdapter.OnCartItemActi
     @Override
     public void onItemRemoved(CartItem item) {
         cartViewModel.removeFromCart(item);
+    }
+
+    @Override
+    public void onNoteEditRequested(CartItem item) {
+        EditText etNote = new EditText(requireContext());
+        etNote.setHint("Enter note for Seller (e.g., color mix, packing request)");
+        if (item.getItemNote() != null) {
+            etNote.setText(item.getItemNote());
+        }
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Product Note — " + (item.getProduct() != null ? item.getProduct().getName() : "Item"))
+                .setView(etNote)
+                .setPositiveButton("Save Note", (d, w) -> {
+                    String note = etNote.getText() != null ? etNote.getText().toString().trim() : "";
+                    cartViewModel.updateItemNote(item, note);
+                })
+                .setNeutralButton("Clear Note", (d, w) -> cartViewModel.updateItemNote(item, null))
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override

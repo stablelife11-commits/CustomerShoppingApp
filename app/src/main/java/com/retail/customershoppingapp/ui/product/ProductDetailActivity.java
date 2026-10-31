@@ -101,17 +101,22 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
                 return;
             }
 
+            String buyerNote = binding.etProductNote.getText() != null
+                    ? binding.etProductNote.getText().toString().trim()
+                    : "";
+
             int totalItemsAdded = 0;
             for (VariantResponse vResponse : product.getVariants()) {
                 if (selections.containsKey(vResponse.getId())) {
                     int qty = selections.get(vResponse.getId());
-                    cartViewModel.addToCart(product, vResponse, qty);
+                    cartViewModel.addToCart(product, vResponse, qty, buyerNote);
                     totalItemsAdded += qty;
                 }
             }
 
             Toast.makeText(this, "Added " + totalItemsAdded + " wholesale units to Cart!", Toast.LENGTH_SHORT).show();
             variantAdapter.clearSelections();
+            binding.etProductNote.setText("");
         });
 
         binding.btnDetailBuyNow.setOnClickListener(v -> {
@@ -122,10 +127,14 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
                 return;
             }
 
+            String buyerNote = binding.etProductNote.getText() != null
+                    ? binding.etProductNote.getText().toString().trim()
+                    : "";
+
             for (VariantResponse vResponse : product.getVariants()) {
                 if (selections.containsKey(vResponse.getId())) {
                     int qty = selections.get(vResponse.getId());
-                    cartViewModel.addToCart(product, vResponse, qty);
+                    cartViewModel.addToCart(product, vResponse, qty, buyerNote);
                 }
             }
             Intent intent = new Intent(ProductDetailActivity.this, CheckoutActivity.class);
@@ -152,7 +161,6 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
         validQuantities.add(0);
         labels.add("0 (Remove Selection)");
 
-        // Generate up to 15 wholesale quantity steps starting at MOQ and stepping by packSize
         int maxSteps = 15;
         int stepCount = 0;
         for (int q = moq; q <= stock && stepCount < maxSteps; q += packSize) {

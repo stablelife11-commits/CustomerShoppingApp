@@ -84,7 +84,7 @@ public class CheckoutActivity extends AppCompatActivity {
         List<OrderItemRequest> orderItems = new ArrayList<>();
         for (CartItem item : cartItems) {
             Long variantId = (item.getVariant() != null) ? item.getVariant().getId() : 0L;
-            orderItems.add(new OrderItemRequest(variantId, item.getQuantity()));
+            orderItems.add(new OrderItemRequest(variantId, item.getQuantity(), item.getItemNote()));
         }
 
         SessionManager sm = new SessionManager(this);

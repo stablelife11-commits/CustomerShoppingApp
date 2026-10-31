@@ -21,6 +21,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
     public interface OnCartItemActionListener {
         void onQuantityChanged(CartItem item, int newQuantity);
         void onItemRemoved(CartItem item);
+        void onNoteEditRequested(CartItem item);
     }
 
     private List<CartItem> cartItems = new ArrayList<>();
@@ -83,7 +84,19 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
             } else {
                 variantInfo.append("Standard");
             }
+
+            if (item.getItemNote() != null && !item.getItemNote().trim().isEmpty()) {
+                variantInfo.append("\n📝 Note: \"").append(item.getItemNote().trim()).append("\" (Tap to edit)");
+            } else {
+                variantInfo.append("\n📝 + Tap here to add a note for Seller");
+            }
+
             binding.tvCartVariant.setText(variantInfo.toString().trim());
+            binding.tvCartVariant.setOnClickListener(vView -> {
+                if (listener != null) {
+                    listener.onNoteEditRequested(item);
+                }
+            });
 
             binding.tvCartPrice.setText("₹" + item.getTotalPrice());
             binding.tvQuantity.setText(String.valueOf(item.getQuantity()));

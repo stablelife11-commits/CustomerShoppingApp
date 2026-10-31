@@ -11,6 +11,7 @@ import com.retail.customershoppingapp.databinding.ActivityOrderDetailBinding;
 import com.retail.customershoppingapp.model.order.OrderResponse;
 import com.retail.customershoppingapp.network.Resource;
 
+import java.util.List;
 import java.util.Locale;
 
 public class OrderDetailActivity extends AppCompatActivity {
@@ -36,32 +37,66 @@ public class OrderDetailActivity extends AppCompatActivity {
             order = (OrderResponse) getIntent().getSerializableExtra("order_data");
             if (order != null) {
                 bindOrderDetails(order);
+                refreshLatestOrderFromServer(order.getId());
             }
         }
     }
 
+    private void refreshLatestOrderFromServer(Long orderId) {
+        if (orderId == null) return;
+        orderViewModel.getOrders().observe(this, resource -> {
+            if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
+                List<OrderResponse> latestOrders = resource.data;
+                for (OrderResponse latest : latestOrders) {
+                    if (orderId.equals(latest.getId())) {
+                        order = latest;
+                        bindOrderDetails(latest);
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
     private void bindOrderDetails(OrderResponse currentOrder) {
         String status = currentOrder.getStatus().toUpperCase(Locale.ROOT);
-        binding.tvDetailOrderId.setText(String.format(Locale.getDefault(),
-                "Order #%d • %s", currentOrder.getId(), status));
+        String statusBadge = "CONFIRMED".equals(status) ? "SELLER CONFIRMED" : status;
 
+        binding.tvDetailOrderId.setText(String.format(Locale.getDefault(),
+                "Order #%d • %s", currentOrder.getId(), statusBadge));
+
+        StringBuilder info = new StringBuilder();
         String dateStr = currentOrder.getOrderDate() != null
                 ? currentOrder.getOrderDate().replace("T", " ")
                 : "Recently";
-        String addressStr = currentOrder.getDeliveryAddress() != null
-                ? "\nDelivery Address: " + currentOrder.getDeliveryAddress()
-                : "";
-        String paymentStr = "\nPayment Status: " + currentOrder.getPaymentStatus()
-                + " (Paid: ₹" + String.format(Locale.getDefault(), "%.2f", currentOrder.getPaidAmount()) + ")";
+        info.append("Placed on: ").append(dateStr);
+
+        if (currentOrder.getDeliveryAddress() != null && !currentOrder.getDeliveryAddress().isEmpty()) {
+            info.append("\n📍 Delivery Address: ").append(currentOrder.getDeliveryAddress());
+        }
+
+        if (currentOrder.getDiscountAmount() > 0) {
+            info.append(String.format(Locale.getDefault(),
+                    "\n💵 Subtotal: ₹%.2f | Seller Discount: -₹%.2f",
+                    currentOrder.getSubtotalAmount(), currentOrder.getDiscountAmount()));
+        }
+
+        if (currentOrder.getSellerRemarks() != null && !currentOrder.getSellerRemarks().trim().isEmpty()) {
+            info.append("\n💬 Seller Confirmed Note: \"").append(currentOrder.getSellerRemarks().trim()).append("\"");
+        }
+
+        info.append(String.format(Locale.getDefault(),
+                "\n💳 Payment Status: %s (Paid: ₹%.2f)",
+                currentOrder.getPaymentStatus(), currentOrder.getPaidAmount()));
 
         if ("PLACED".equals(status)) {
-            paymentStr += "\n\n[Tap here to Cancel Order]";
+            info.append("\n\n[Tap here to Cancel Order]");
             binding.tvDetailOrderDate.setOnClickListener(v -> confirmCancelOrder(currentOrder.getId()));
         } else {
             binding.tvDetailOrderDate.setOnClickListener(null);
         }
 
-        binding.tvDetailOrderDate.setText("Placed on: " + dateStr + addressStr + paymentStr);
+        binding.tvDetailOrderDate.setText(info.toString());
         binding.tvDetailOrderTotal.setText(String.format(Locale.getDefault(), "₹%.2f", currentOrder.getTotalAmount()));
 
         if (currentOrder.getItems() != null) {

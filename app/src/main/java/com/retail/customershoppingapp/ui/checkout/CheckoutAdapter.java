@@ -38,16 +38,18 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.ViewHo
         String color = (item.getVariant() != null && item.getVariant().getColor() != null) ? item.getVariant().getColor() : "";
 
         holder.tvName.setText(name + " (" + size + " " + color + ")");
-        holder.tvQty.setText("Qty: " + item.getQuantity());
+        String qtyText = "Qty: " + item.getQuantity();
+        if (item.getItemNote() != null && !item.getItemNote().trim().isEmpty()) {
+            qtyText += " | Note: \"" + item.getItemNote().trim() + "\"";
+        }
+        holder.tvQty.setText(qtyText);
 
-        // 🟢 PRO FIX: Item price calculation using BigDecimal
         BigDecimal price = BigDecimal.ZERO;
         if (item.getVariant() != null && item.getVariant().getSellingPrice() != null) {
             price = item.getVariant().getSellingPrice();
         }
 
         BigDecimal itemTotal = price.multiply(BigDecimal.valueOf(item.getQuantity()));
-
         holder.tvPrice.setText("₹" + itemTotal.setScale(2, RoundingMode.HALF_UP).toPlainString());
     }
 

@@ -13,6 +13,7 @@ import com.retail.customershoppingapp.model.order.OrderResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> {
 
@@ -23,11 +24,9 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
     private List<OrderResponse> orders = new ArrayList<>();
     private OnOrderClickListener listener;
 
-    // 🟢 SAFEGUARD 1: Agar Fragment me 'new OrderAdapter()' use hua hai
     public OrderAdapter() {
     }
 
-    // 🟢 SAFEGUARD 2: Agar Fragment me 'new OrderAdapter(this)' use hua hai
     public OrderAdapter(OnOrderClickListener listener) {
         this.listener = listener;
     }
@@ -55,17 +54,23 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
         OrderResponse order = orders.get(position);
 
         holder.binding.tvOrderId.setText("Order #" + order.getId());
-        holder.binding.tvOrderTotal.setText(String.format("Total: ₹%.2f", order.getTotalAmount()));
+
+        String totalLabel = String.format(Locale.getDefault(), "Final Total: ₹%.2f", order.getTotalAmount());
+        if (order.getDiscountAmount() > 0) {
+            totalLabel += String.format(Locale.getDefault(), " (Discount: -₹%.2f)", order.getDiscountAmount());
+        }
+        holder.binding.tvOrderTotal.setText(totalLabel);
 
         String date = order.getOrderDate() != null ? order.getOrderDate().split("T")[0] : "Recent";
         holder.binding.tvOrderDate.setText("Date: " + date);
 
-        String status = order.getStatus() != null ? order.getStatus().toUpperCase() : "PLACED";
-        holder.binding.tvOrderStatus.setText(status);
+        String status = order.getStatus() != null ? order.getStatus().toUpperCase(Locale.ROOT) : "PLACED";
+        String badgeText = "CONFIRMED".equals(status) ? "SELLER CONFIRMED" : status;
+        holder.binding.tvOrderStatus.setText(badgeText);
 
         if ("CONFIRMED".equals(status) || "DELIVERED".equals(status)) {
             holder.binding.tvOrderStatus.setTextColor(Color.parseColor("#388E3C"));
-        } else if ("CANCELLED".equals(status)) {
+        } else if ("CANCELLED".equals(status) || "REJECTED".equals(status)) {
             holder.binding.tvOrderStatus.setTextColor(Color.parseColor("#EF4444"));
         } else {
             holder.binding.tvOrderStatus.setTextColor(Color.parseColor("#F59E0B"));
@@ -79,9 +84,17 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
 
                 itemsStr.append("• ").append(item.getProductName())
                         .append(" (").append(size).append(" ").append(color).append(")")
-                        .append(" x").append(item.getQuantity())
-                        .append("\n");
+                        .append(" — ").append(item.getQuantity())
+                        .append(" × ₹").append(item.getPrice() != null ? item.getPrice() : "0.00");
+
+                if (item.getItemNote() != null && !item.getItemNote().trim().isEmpty()) {
+                    itemsStr.append(" [Note: ").append(item.getItemNote().trim()).append("]");
+                }
+                itemsStr.append("\n");
             }
+        }
+        if (order.getSellerRemarks() != null && !order.getSellerRemarks().trim().isEmpty()) {
+            itemsStr.append("💬 Seller Note: ").append(order.getSellerRemarks().trim());
         }
         holder.binding.tvOrderItems.setText(itemsStr.toString().trim());
 

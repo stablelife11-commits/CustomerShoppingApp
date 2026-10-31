@@ -33,8 +33,13 @@ public class CartRepository {
     }
 
     public void addToCart(ProductResponse product, VariantResponse variant, int quantity) {
+        addToCart(product, variant, quantity, null);
+    }
+
+    public void addToCart(ProductResponse product, VariantResponse variant, int quantity, String itemNote) {
         List<CartItem> currentList = new ArrayList<>(getCartItems());
         boolean exists = false;
+        String cleanNote = (itemNote != null && !itemNote.trim().isEmpty()) ? itemNote.trim() : null;
 
         for (CartItem item : currentList) {
             boolean sameProduct = item.getProduct() != null && product != null &&
@@ -44,15 +49,31 @@ public class CartRepository {
 
             if (sameProduct && sameVariant) {
                 item.setQuantity(item.getQuantity() + quantity);
+                if (cleanNote != null) {
+                    item.setItemNote(cleanNote);
+                }
                 exists = true;
                 break;
             }
         }
 
         if (!exists) {
-            currentList.add(new CartItem(product, variant, quantity));
+            currentList.add(new CartItem(product, variant, quantity, cleanNote));
         }
 
+        sessionManager.saveCart(currentList);
+        cartLiveData.setValue(currentList);
+    }
+
+    public void updateItemNote(CartItem targetItem, String newNote) {
+        List<CartItem> currentList = new ArrayList<>(getCartItems());
+        String cleanNote = (newNote != null && !newNote.trim().isEmpty()) ? newNote.trim() : null;
+        for (CartItem cartItem : currentList) {
+            if (cartItem.equals(targetItem) || isSameCartItem(cartItem, targetItem)) {
+                cartItem.setItemNote(cleanNote);
+                break;
+            }
+        }
         sessionManager.saveCart(currentList);
         cartLiveData.setValue(currentList);
     }

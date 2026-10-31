@@ -9,8 +9,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.retail.customershoppingapp.databinding.ItemOrderProductBinding;
 import com.retail.customershoppingapp.model.order.OrderItemResponse;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class OrderItemAdapter extends RecyclerView.Adapter<OrderItemAdapter.ViewHolder> {
 
@@ -51,9 +53,25 @@ public class OrderItemAdapter extends RecyclerView.Adapter<OrderItemAdapter.View
         void bind(OrderItemResponse item) {
             String name = item.getProductName() != null ? item.getProductName() : "Product";
             int qty = item.getQuantity() != null ? item.getQuantity() : 1;
-            binding.tvProductName.setText(name + " (x" + qty + ")");
+            BigDecimal unitPrice = item.getPrice() != null ? item.getPrice() : BigDecimal.ZERO;
+            BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(qty));
 
-            binding.tvProductPrice.setText("₹" + (item.getPrice() != null ? item.getPrice() : "0.00"));
+            StringBuilder label = new StringBuilder(name);
+            if (item.getSize() != null || item.getColor() != null) {
+                label.append(" (")
+                        .append(item.getSize() != null ? item.getSize() : "")
+                        .append(item.getColor() != null ? " " + item.getColor() : "")
+                        .append(")");
+            }
+            label.append("\nConfirmed Qty: ").append(qty)
+                    .append(" × ₹").append(String.format(Locale.getDefault(), "%.2f", unitPrice));
+
+            if (item.getItemNote() != null && !item.getItemNote().trim().isEmpty()) {
+                label.append("\n📝 Note: \"").append(item.getItemNote().trim()).append("\"");
+            }
+
+            binding.tvProductName.setText(label.toString());
+            binding.tvProductPrice.setText(String.format(Locale.getDefault(), "₹%.2f", lineTotal));
         }
     }
 }

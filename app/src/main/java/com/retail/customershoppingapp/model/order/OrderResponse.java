@@ -21,6 +21,12 @@ public class OrderResponse implements Serializable {
     @SerializedName("customerMobile")
     private String customerMobile;
 
+    @SerializedName("subtotalAmount")
+    private Double subtotalAmount;
+
+    @SerializedName("discountAmount")
+    private Double discountAmount;
+
     @SerializedName("totalAmount")
     private Double totalAmount;
 
@@ -29,6 +35,9 @@ public class OrderResponse implements Serializable {
 
     @SerializedName("paymentStatus")
     private String paymentStatus;
+
+    @SerializedName("sellerRemarks")
+    private String sellerRemarks;
 
     @SerializedName("orderDate")
     private String orderDate;
@@ -47,9 +56,12 @@ public class OrderResponse implements Serializable {
     public Long getCustomerId() { return customerId; }
     public String getCustomerName() { return customerName; }
     public String getCustomerMobile() { return customerMobile; }
+    public Double getSubtotalAmount() { return subtotalAmount != null ? subtotalAmount : getTotalAmount(); }
+    public Double getDiscountAmount() { return discountAmount != null ? discountAmount : 0.0; }
     public Double getTotalAmount() { return totalAmount != null ? totalAmount : 0.0; }
     public Double getPaidAmount() { return paidAmount != null ? paidAmount : 0.0; }
     public String getPaymentStatus() { return paymentStatus != null ? paymentStatus : "UNPAID"; }
+    public String getSellerRemarks() { return sellerRemarks; }
     public String getOrderDate() { return orderDate; }
     public String getStatus() { return status != null ? status : "PLACED"; }
     public String getDeliveryAddress() { return deliveryAddress; }

@@ -27,7 +27,15 @@ public class CartViewModel extends AndroidViewModel {
     }
 
     public void addToCart(ProductResponse product, VariantResponse variant, int quantity) {
-        cartRepository.addToCart(product, variant, quantity);
+        cartRepository.addToCart(product, variant, quantity, null);
+    }
+
+    public void addToCart(ProductResponse product, VariantResponse variant, int quantity, String itemNote) {
+        cartRepository.addToCart(product, variant, quantity, itemNote);
+    }
+
+    public void updateItemNote(CartItem item, String note) {
+        cartRepository.updateItemNote(item, note);
     }
 
     public void updateQuantity(CartItem item, int quantity) {
