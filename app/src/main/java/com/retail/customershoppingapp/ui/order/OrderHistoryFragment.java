@@ -42,6 +42,7 @@ public class OrderHistoryFragment extends Fragment implements OrderAdapter.OnOrd
         binding.swipeRefresh.setOnRefreshListener(this::loadOrders);
         loadOrders();
     }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -50,7 +51,7 @@ public class OrderHistoryFragment extends Fragment implements OrderAdapter.OnOrd
 
     private void loadOrders() {
         orderViewModel.getOrders().observe(getViewLifecycleOwner(), resource -> {
-            if (resource == null) return;
+            if (resource == null || binding == null) return;
 
             binding.swipeRefresh.setRefreshing(false);
 

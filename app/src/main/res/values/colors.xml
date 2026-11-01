@@ -1,26 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Core Brand Palette (Royal Indigo-Navy + Flipkart/Amazon CTA Amber/Orange) -->
     <color name="primary">#1E3A8A</color>
-    <color name="primary_dark">#1E293B</color>
+    <color name="primary_dark">#0F2359</color>
+    <color name="primary_container">#DBEAFE</color>
+    <color name="on_primary_container">#1E3A8A</color>
+
     <color name="secondary">#2563EB</color>
+    <color name="accent_cta">#FF9F00</color>
+    <color name="accent_cta_dark">#FB641B</color>
     <color name="accent_light">#EFF6FF</color>
     <color name="accent_gold">#D97706</color>
+    <color name="accent_gold_bg">#FEF3C7</color>
 
-    <color name="background">#F8FAFC</color>
+    <!-- Surfaces & Backgrounds -->
+    <color name="background">#F1F5F9</color>
     <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F8FAFC</color>
+    <color name="surface_elevated">#FFFFFF</color>
 
+    <!-- Typography Hierarchy -->
     <color name="text_primary">#0F172A</color>
-    <color name="text_secondary">#64748B</color>
+    <color name="text_secondary">#475569</color>
     <color name="text_hint">#94A3B8</color>
+    <color name="text_strike">#94A3B8</color>
 
+    <!-- Borders, Dividers & Shimmer -->
     <color name="border">#E2E8F0</color>
     <color name="divider">#F1F5F9</color>
+    <color name="shimmer_base">#E2E8F0</color>
+    <color name="shimmer_highlight">#F8FAFC</color>
 
+    <!-- E-Commerce Semantic Tokens -->
+    <color name="price_green">#15803D</color>
+    <color name="discount_red">#DC2626</color>
+    <color name="discount_red_bg">#FEE2E2</color>
+    <color name="rating_green">#16A34A</color>
+    <color name="rating_green_bg">#DCFCE7</color>
+
+    <!-- Status & Feedback -->
     <color name="success">#16A34A</color>
+    <color name="success_bg">#DCFCE7</color>
     <color name="error">#DC2626</color>
+    <color name="error_bg">#FEE2E2</color>
     <color name="warning">#EA580C</color>
+    <color name="warning_bg">#FFEDD5</color>
+    <color name="info_blue">#0284C7</color>
+    <color name="info_blue_bg">#E0F2FE</color>
 
+    <!-- Standard Primitives -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="transparent">#00000000</color>
+    <color name="scrim_dark">#990F172A</color>
 </resources>

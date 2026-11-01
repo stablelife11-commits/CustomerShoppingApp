@@ -1,7 +1,11 @@
 package com.retail.customershoppingapp.ui.home;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +19,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.retail.customershoppingapp.databinding.FragmentHomeBinding;
 import com.retail.customershoppingapp.model.product.ProductResponse;
+import com.retail.customershoppingapp.model.product.VariantResponse;
 import com.retail.customershoppingapp.network.Resource;
+import com.retail.customershoppingapp.session.SessionManager;
 import com.retail.customershoppingapp.ui.cart.CartViewModel;
 import com.retail.customershoppingapp.ui.product.ProductAdapter;
 import com.retail.customershoppingapp.ui.product.ProductDetailActivity;
@@ -33,7 +39,36 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     private ProductViewModel productViewModel;
     private CartViewModel cartViewModel;
     private ProductAdapter productAdapter;
+    private ProductAdapter dealsAdapter;
     private CategoryAdapter categoryAdapter;
+    private ObjectAnimator shimmerAnimator;
+
+    private final Handler bannerHandler = new Handler(Looper.getMainLooper());
+    private int currentBannerSlide = 0;
+    private final String[] bannerTags = {"WHOLESALE MEGA MELA", "DIRECT MILL DISPATCH", "GST INVOICE READY"};
+    private final String[] bannerTitles = {"Festive Garment Lots", "Bulk Innerwear Packs", "New Season Arrivals"};
+    private final String[] bannerSubs = {
+            "Up to 25% margin on bulk innerwear & apparel packs",
+            "Order in set-wise packs directly from verified sellers",
+            "Negotiate custom rates with sellers before confirmation"
+    };
+
+    private final Runnable bannerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (binding == null) return;
+            currentBannerSlide = (currentBannerSlide + 1) % bannerTitles.length;
+            binding.tvBannerTag.setText(bannerTags[currentBannerSlide]);
+            binding.tvBannerTitle.setText(bannerTitles[currentBannerSlide]);
+            binding.tvBannerSub.setText(bannerSubs[currentBannerSlide]);
+
+            binding.dot1.setAlpha(currentBannerSlide == 0 ? 1.0f : 0.4f);
+            binding.dot2.setAlpha(currentBannerSlide == 1 ? 1.0f : 0.4f);
+            binding.dot3.setAlpha(currentBannerSlide == 2 ? 1.0f : 0.4f);
+
+            bannerHandler.postDelayed(this, 4000);
+        }
+    };
 
     @Nullable
     @Override
@@ -49,6 +84,11 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
         productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         cartViewModel = new ViewModelProvider(requireActivity()).get(CartViewModel.class);
 
+        SessionManager sm = new SessionManager(requireContext());
+        if (!sm.getUserName().isEmpty()) {
+            binding.tvDeliveryLocation.setText("Deliver to: " + sm.getUserName() + " • Wholesale Account");
+        }
+
         setupRecyclerViews();
         setupSearchAndActions();
         loadData();
@@ -60,6 +100,9 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     private void setupRecyclerViews() {
         productAdapter = new ProductAdapter(this);
         binding.rvProducts.setAdapter(productAdapter);
+
+        dealsAdapter = new ProductAdapter(this);
+        binding.rvDeals.setAdapter(dealsAdapter);
 
         categoryAdapter = new CategoryAdapter(this);
         binding.rvCategories.setAdapter(categoryAdapter);
@@ -75,30 +118,71 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
             return false;
         });
 
-        binding.btnBannerExplore.setOnClickListener(v -> {
+        View.OnClickListener openAllProducts = v -> {
             Intent intent = new Intent(requireContext(), ProductListActivity.class);
             startActivity(intent);
-        });
+        };
+
+        binding.btnBannerExplore.setOnClickListener(openAllProducts);
+        binding.tvViewAllDeals.setOnClickListener(openAllProducts);
+        binding.tvViewAllProducts.setOnClickListener(openAllProducts);
+        binding.tvViewAllCategories.setOnClickListener(openAllProducts);
+
+        binding.ivSearchMic.setOnClickListener(v -> openProductListWithSearch(""));
+        binding.ivSearchCamera.setOnClickListener(v -> openProductListWithSearch(""));
+        binding.btnHeaderNotifications.setOnClickListener(v ->
+                Toast.makeText(requireContext(), "All seller order updates are synced in Orders tab", Toast.LENGTH_SHORT).show());
+    }
+
+    private void startShimmer() {
+        if (binding == null) return;
+        binding.layoutShimmer.setVisibility(View.VISIBLE);
+        if (shimmerAnimator == null) {
+            shimmerAnimator = ObjectAnimator.ofFloat(binding.layoutShimmer, "alpha", 1.0f, 0.45f);
+            shimmerAnimator.setDuration(750);
+            shimmerAnimator.setRepeatMode(ValueAnimator.REVERSE);
+            shimmerAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        }
+        if (!shimmerAnimator.isRunning()) {
+            shimmerAnimator.start();
+        }
+    }
+
+    private void stopShimmer() {
+        if (shimmerAnimator != null && shimmerAnimator.isRunning()) {
+            shimmerAnimator.cancel();
+        }
+        if (binding != null) {
+            binding.layoutShimmer.setAlpha(1.0f);
+            binding.layoutShimmer.setVisibility(View.GONE);
+        }
     }
 
     private void loadData() {
-        // 🟢 FIX: Fetch exactly 20 products for the home page (Page 0, Size 20)
         productViewModel.fetchProducts(0, 20).observe(getViewLifecycleOwner(), resource -> {
-            if (resource == null) return;
+            if (resource == null || binding == null) return;
 
             binding.swipeRefresh.setRefreshing(false);
 
             if (resource.status == Resource.Status.LOADING) {
-                binding.progressBar.setVisibility(View.VISIBLE);
+                startShimmer();
                 binding.layoutError.setVisibility(View.GONE);
             } else if (resource.status == Resource.Status.SUCCESS) {
-                binding.progressBar.setVisibility(View.GONE);
+                stopShimmer();
                 binding.layoutError.setVisibility(View.GONE);
 
                 List<ProductResponse> products = resource.data != null ? resource.data : new ArrayList<>();
                 productAdapter.setProducts(products);
 
-                // Extract unique categories from product list
+                // Populate Deals of the Day rail with top 6 items
+                List<ProductResponse> dealsList = products.size() > 6 ? products.subList(0, 6) : products;
+                if (dealsList.isEmpty()) {
+                    binding.layoutDealsSection.setVisibility(View.GONE);
+                } else {
+                    binding.layoutDealsSection.setVisibility(View.VISIBLE);
+                    dealsAdapter.setProducts(dealsList);
+                }
+
                 Set<String> categorySet = new HashSet<>();
                 for (ProductResponse p : products) {
                     if (p.getCategory() != null && !p.getCategory().isEmpty()) {
@@ -106,14 +190,16 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
                     }
                 }
                 if (categorySet.isEmpty()) {
+                    categorySet.add("Undergarments");
                     categorySet.add("Apparel");
-                    categorySet.add("Electronics");
-                    categorySet.add("Footwear");
+                    categorySet.add("Menswear");
+                    categorySet.add("Kids Wear");
+                    categorySet.add("Winter Wear");
                 }
                 categoryAdapter.setCategories(new ArrayList<>(categorySet));
 
             } else if (resource.status == Resource.Status.ERROR) {
-                binding.progressBar.setVisibility(View.GONE);
+                stopShimmer();
                 binding.layoutError.setVisibility(View.VISIBLE);
                 binding.tvErrorMsg.setText(resource.message != null ? resource.message : "Failed to load products");
             }
@@ -136,7 +222,7 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     @Override
     public void onAddToCartClick(ProductResponse product) {
         if (product.getVariants() != null && !product.getVariants().isEmpty()) {
-            com.retail.customershoppingapp.model.product.VariantResponse firstVar = product.getVariants().get(0);
+            VariantResponse firstVar = product.getVariants().get(0);
             int moq = firstVar.getMinimumOrderQuantity();
             if (firstVar.getStock() < moq) {
                 Toast.makeText(requireContext(), "Out of stock for minimum wholesale quantity (" + moq + ")", Toast.LENGTH_SHORT).show();
@@ -157,7 +243,21 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        bannerHandler.postDelayed(bannerRunnable, 4000);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        bannerHandler.removeCallbacks(bannerRunnable);
+    }
+
+    @Override
     public void onDestroyView() {
+        bannerHandler.removeCallbacks(bannerRunnable);
+        stopShimmer();
         super.onDestroyView();
         binding = null;
     }

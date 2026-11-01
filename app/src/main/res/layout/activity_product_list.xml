@@ -7,73 +7,139 @@
     android:background="@color/background"
     android:orientation="vertical">
 
+    <!-- 1. Top Search App Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary"
+        android:background="@drawable/bg_header_gradient"
+        android:elevation="4dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp">
 
         <ImageButton
             android:id="@+id/btn_back"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/app_name"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="@color/white" />
+            android:contentDescription="Back"
+            android:src="@drawable/ic_arrow_back" />
 
-        <EditText
-            android:id="@+id/et_search_list"
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="6dp"
             android:layout_weight="1"
-            android:background="@drawable/ic_launcher_background"
-            android:backgroundTint="@color/white"
-            android:hint="@string/search_hint"
-            android:imeOptions="actionSearch"
-            android:inputType="text"
-            android:paddingHorizontal="12dp"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
-            android:textSize="14sp" />
+            android:background="@drawable/bg_search_pill"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/search_hint"
+                android:src="@drawable/ic_search_modern" />
+
+            <EditText
+                android:id="@+id/et_search_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:background="@null"
+                android:hint="@string/search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_toggle_layout"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="6dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Toggle Grid or List"
+            android:src="@drawable/ic_list_view"
+            app:tint="@color/white" />
     </LinearLayout>
 
-    <HorizontalScrollView
+    <!-- 2. Sticky Filter Bar -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/surface"
-        android:padding="8dp"
-        android:scrollbars="none">
+        android:elevation="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:scrollbars="none">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_sort"
-                style="@style/Widget.Material3.Chip.Filter"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
-                android:text="Sort: Recommended"
-                app:chipBackgroundColor="@color/accent_light"
-                app:chipStrokeColor="@color/border" />
+                android:orientation="horizontal">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_category"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Category: All"
-                app:chipBackgroundColor="@color/accent_light"
-                app:chipStrokeColor="@color/border" />
-        </LinearLayout>
-    </HorizontalScrollView>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_sort"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="Sort: Recommended"
+                    app:chipBackgroundColor="@color/accent_light"
+                    app:chipIcon="@drawable/ic_sort"
+                    app:chipIconVisible="true"
+                    app:chipStrokeColor="@color/primary_container" />
 
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_category"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="Category: All"
+                    app:chipBackgroundColor="@color/accent_light"
+                    app:chipIcon="@drawable/ic_filter_list"
+                    app:chipIconVisible="true"
+                    app:chipStrokeColor="@color/primary_container" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_in_stock"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:text="In Stock Only"
+                    app:chipBackgroundColor="@color/surface_variant"
+                    app:chipStrokeColor="@color/border" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <!-- Result Count Strip -->
+    <TextView
+        android:id="@+id/tv_result_count"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="2dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        tools:text="Showing 18 wholesale products" />
+
+    <!-- Loading Indicator -->
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
@@ -82,6 +148,51 @@
         android:layout_marginTop="32dp"
         android:visibility="gone" />
 
+    <!-- Empty Search State -->
+    <LinearLayout
+        android:id="@+id/layout_empty_search"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:contentDescription="No products found"
+            android:src="@drawable/ic_product_placeholder" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="No matching wholesale products"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="Try clearing filters or searching by another brand, category, or product name."
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_reset_filters"
+            style="@style/Widget.FlowMart.Button.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Reset All Filters" />
+    </LinearLayout>
+
+    <!-- Product Grid / List RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_product_list"
         android:layout_width="match_parent"

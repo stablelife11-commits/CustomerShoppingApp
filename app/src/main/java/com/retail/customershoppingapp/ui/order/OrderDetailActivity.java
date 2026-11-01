@@ -1,12 +1,15 @@
 package com.retail.customershoppingapp.ui.order;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.retail.customershoppingapp.R;
 import com.retail.customershoppingapp.databinding.ActivityOrderDetailBinding;
 import com.retail.customershoppingapp.model.order.OrderResponse;
 import com.retail.customershoppingapp.network.Resource;
@@ -60,10 +63,10 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     private void bindOrderDetails(OrderResponse currentOrder) {
         String status = currentOrder.getStatus().toUpperCase(Locale.ROOT);
-        String statusBadge = "CONFIRMED".equals(status) ? "SELLER CONFIRMED" : status;
+        String badgeText = "CONFIRMED".equals(status) ? "SELLER CONFIRMED" : status;
 
         binding.tvDetailOrderId.setText(String.format(Locale.getDefault(),
-                "Order #%d • %s", currentOrder.getId(), statusBadge));
+                "Order #%d • %s", currentOrder.getId(), badgeText));
 
         StringBuilder info = new StringBuilder();
         String dateStr = currentOrder.getOrderDate() != null
@@ -82,25 +85,52 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
 
         if (currentOrder.getSellerRemarks() != null && !currentOrder.getSellerRemarks().trim().isEmpty()) {
-            info.append("\n💬 Seller Confirmed Note: \"").append(currentOrder.getSellerRemarks().trim()).append("\"");
+            info.append("\n💬 Seller Note: \"").append(currentOrder.getSellerRemarks().trim()).append("\"");
         }
 
         info.append(String.format(Locale.getDefault(),
                 "\n💳 Payment Status: %s (Paid: ₹%.2f)",
                 currentOrder.getPaymentStatus(), currentOrder.getPaidAmount()));
 
-        if ("PLACED".equals(status)) {
-            info.append("\n\n[Tap here to Cancel Order]");
-            binding.tvDetailOrderDate.setOnClickListener(v -> confirmCancelOrder(currentOrder.getId()));
-        } else {
-            binding.tvDetailOrderDate.setOnClickListener(null);
-        }
-
         binding.tvDetailOrderDate.setText(info.toString());
         binding.tvDetailOrderTotal.setText(String.format(Locale.getDefault(), "₹%.2f", currentOrder.getTotalAmount()));
 
         if (currentOrder.getItems() != null) {
             adapter.setItems(currentOrder.getItems());
+        }
+
+        // Render Dynamic Status Timeline
+        int green = ContextCompat.getColor(this, R.color.success);
+        int primary = ContextCompat.getColor(this, R.color.primary);
+        int grey = ContextCompat.getColor(this, R.color.text_secondary);
+        int red = ContextCompat.getColor(this, R.color.error);
+
+        binding.timelinePlaced.setText("✓ Order Placed by Buyer");
+        binding.timelinePlaced.setTextColor(green);
+
+        boolean isConfirmed = "CONFIRMED".equals(status) || "PROCESSING".equals(status) || "SHIPPED".equals(status) || "DELIVERED".equals(status);
+        boolean isProcessing = "PROCESSING".equals(status) || "SHIPPED".equals(status) || "DELIVERED".equals(status);
+        boolean isShipped = "SHIPPED".equals(status) || "DELIVERED".equals(status);
+        boolean isDelivered = "DELIVERED".equals(status);
+        boolean isCancelled = "CANCELLED".equals(status) || "REJECTED".equals(status);
+
+        binding.timelineConfirmed.setText(isConfirmed ? "✓ Seller Confirmed Lot" : "○ Seller Confirmation Pending");
+        binding.timelineConfirmed.setTextColor(isConfirmed ? green : (isCancelled ? red : grey));
+
+        binding.timelineProcessing.setText(isProcessing ? "✓ Godown Processing & Packing" : "○ Godown Processing");
+        binding.timelineProcessing.setTextColor(isProcessing ? green : grey);
+
+        binding.timelineShipped.setText(isShipped ? "✓ Dispatched / Out for Delivery" : "○ Out for Delivery");
+        binding.timelineShipped.setTextColor(isShipped ? green : grey);
+
+        binding.timelineDelivered.setText(isDelivered ? "✓ Delivered to Store" : "○ Delivered");
+        binding.timelineDelivered.setTextColor(isDelivered ? green : grey);
+
+        if ("PLACED".equals(status)) {
+            binding.btnCancelOrder.setVisibility(View.VISIBLE);
+            binding.btnCancelOrder.setOnClickListener(v -> confirmCancelOrder(currentOrder.getId()));
+        } else {
+            binding.btnCancelOrder.setVisibility(View.GONE);
         }
     }
 

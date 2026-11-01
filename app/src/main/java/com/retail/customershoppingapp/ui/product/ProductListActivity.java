@@ -8,18 +8,22 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.retail.customershoppingapp.R;
 import com.retail.customershoppingapp.databinding.ActivityProductListBinding;
 import com.retail.customershoppingapp.model.product.ProductResponse;
+import com.retail.customershoppingapp.model.product.VariantResponse;
 import com.retail.customershoppingapp.network.Resource;
 import com.retail.customershoppingapp.ui.cart.CartViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ProductListActivity extends AppCompatActivity implements ProductAdapter.OnProductClickListener {
 
@@ -27,16 +31,17 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
     private ProductViewModel productViewModel;
     private CartViewModel cartViewModel;
     private ProductAdapter productAdapter;
-    private List<ProductResponse> rawProducts = new ArrayList<>();
+    private GridLayoutManager gridLayoutManager;
+    private final List<ProductResponse> rawProducts = new ArrayList<>();
 
-    // 🟢 PAGINATION STATE
     private int currentPage = 0;
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private final int PAGE_SIZE = 20;
+    private boolean isTwoColumnGrid = true;
 
     private int sortIndex = 0;
-    private final String[] sortOptions = {"Recommended", "Price: Low to High", "Price: High to Low", "Name"};
+    private final String[] sortOptions = {"Recommended", "Price: Low to High", "Price: High to Low", "Name (A–Z)"};
     private final String[] sortKeys = {"RECOMMENDED", "PRICE_LOW_HIGH", "PRICE_HIGH_LOW", "NAME"};
 
     @Override
@@ -48,10 +53,20 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
         productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
 
+        gridLayoutManager = new GridLayoutManager(this, 2);
+        binding.rvProductList.setLayoutManager(gridLayoutManager);
         productAdapter = new ProductAdapter(this);
         binding.rvProductList.setAdapter(productAdapter);
 
         binding.btnBack.setOnClickListener(v -> finish());
+
+        // Toggle between 2-column grid and 1-column list
+        binding.btnToggleLayout.setOnClickListener(v -> {
+            isTwoColumnGrid = !isTwoColumnGrid;
+            gridLayoutManager.setSpanCount(isTwoColumnGrid ? 2 : 1);
+            binding.btnToggleLayout.setImageResource(isTwoColumnGrid ? R.drawable.ic_list_view : R.drawable.ic_grid_view);
+            productAdapter.notifyItemRangeChanged(0, productAdapter.getItemCount());
+        });
 
         Intent intent = getIntent();
         if (intent.hasExtra("search_query")) {
@@ -80,10 +95,16 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
         });
 
         binding.chipSort.setOnClickListener(v -> {
-            sortIndex = (sortIndex + 1) % sortOptions.length;
-            productViewModel.setSortOrder(sortKeys[sortIndex]);
-            binding.chipSort.setText("Sort: " + sortOptions[sortIndex]);
-            applyFilters();
+            new AlertDialog.Builder(this)
+                    .setTitle("Sort Wholesale Catalog By")
+                    .setSingleChoiceItems(sortOptions, sortIndex, (dialog, which) -> {
+                        sortIndex = which;
+                        productViewModel.setSortOrder(sortKeys[sortIndex]);
+                        binding.chipSort.setText("Sort: " + sortOptions[sortIndex]);
+                        applyFilters();
+                        dialog.dismiss();
+                    })
+                    .show();
         });
 
         binding.chipCategory.setOnClickListener(v -> {
@@ -92,23 +113,33 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
             applyFilters();
         });
 
-        // 🟢 FIX: Infinite Scroll Listener
+        binding.chipInStock.setOnCheckedChangeListener((buttonView, isChecked) -> applyFilters());
+
+        binding.btnResetFilters.setOnClickListener(v -> {
+            binding.etSearchList.setText("");
+            productViewModel.setSearchQuery("");
+            productViewModel.setSelectedCategory("ALL");
+            productViewModel.setSortOrder("RECOMMENDED");
+            sortIndex = 0;
+            binding.chipSort.setText("Sort: Recommended");
+            binding.chipCategory.setText("Category: All");
+            binding.chipInStock.setChecked(false);
+            applyFilters();
+        });
+
         binding.rvProductList.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (dy > 0) { // If scrolling down
-                    GridLayoutManager layoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
-                    if (layoutManager != null) {
-                        int visibleItemCount = layoutManager.getChildCount();
-                        int totalItemCount = layoutManager.getItemCount();
-                        int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+                if (dy > 0 && gridLayoutManager != null) {
+                    int visibleItemCount = gridLayoutManager.getChildCount();
+                    int totalItemCount = gridLayoutManager.getItemCount();
+                    int pastVisibleItems = gridLayoutManager.findFirstVisibleItemPosition();
 
-                        if (!isLoading && !isLastPage) {
-                            if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
-                                currentPage++;
-                                loadProducts(currentPage);
-                            }
+                    if (!isLoading && !isLastPage) {
+                        if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                            currentPage++;
+                            loadProducts(currentPage);
                         }
                     }
                 }
@@ -120,7 +151,6 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
 
     private void loadProducts(int page) {
         isLoading = true;
-        // 🟢 Fetch specific page
         productViewModel.fetchProducts(page, PAGE_SIZE).observe(this, resource -> {
             if (resource == null) return;
             if (resource.status == Resource.Status.LOADING) {
@@ -130,29 +160,56 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
                 isLoading = false;
 
                 List<ProductResponse> newProducts = resource.data != null ? resource.data : new ArrayList<>();
-
-                // Agar 20 se kam products aaye hain, iska matlab list khatam ho gayi hai
                 if (newProducts.size() < PAGE_SIZE) {
                     isLastPage = true;
                 }
 
                 if (page == 0) {
-                    rawProducts.clear(); // Naya search ya first load
+                    rawProducts.clear();
                 }
-                rawProducts.addAll(newProducts); // Puraane products ke aage naye products jodna
+                rawProducts.addAll(newProducts);
                 applyFilters();
 
             } else if (resource.status == Resource.Status.ERROR) {
                 binding.progressBar.setVisibility(View.GONE);
                 isLoading = false;
                 Toast.makeText(ProductListActivity.this, resource.message, Toast.LENGTH_SHORT).show();
+                applyFilters();
             }
         });
     }
 
     private void applyFilters() {
         List<ProductResponse> filtered = productViewModel.filterAndSort(rawProducts);
+
+        if (binding.chipInStock.isChecked()) {
+            List<ProductResponse> inStockOnly = new ArrayList<>();
+            for (ProductResponse p : filtered) {
+                if (Boolean.TRUE.equals(p.getActive()) && p.getVariants() != null) {
+                    int stock = 0;
+                    int moq = p.getVariants().isEmpty() ? 1 : p.getVariants().get(0).getMinimumOrderQuantity();
+                    for (VariantResponse v : p.getVariants()) {
+                        stock += v.getStock();
+                    }
+                    if (stock >= moq) {
+                        inStockOnly.add(p);
+                    }
+                }
+            }
+            filtered = inStockOnly;
+        }
+
         productAdapter.setProducts(filtered);
+        binding.tvResultCount.setText(String.format(Locale.getDefault(),
+                "Showing %d wholesale product(s)", filtered.size()));
+
+        if (filtered.isEmpty() && !isLoading) {
+            binding.layoutEmptySearch.setVisibility(View.VISIBLE);
+            binding.rvProductList.setVisibility(View.GONE);
+        } else {
+            binding.layoutEmptySearch.setVisibility(View.GONE);
+            binding.rvProductList.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -165,7 +222,7 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
     @Override
     public void onAddToCartClick(ProductResponse product) {
         if (product.getVariants() != null && !product.getVariants().isEmpty()) {
-            com.retail.customershoppingapp.model.product.VariantResponse firstVar = product.getVariants().get(0);
+            VariantResponse firstVar = product.getVariants().get(0);
             int moq = firstVar.getMinimumOrderQuantity();
             if (firstVar.getStock() < moq) {
                 Toast.makeText(this, "Out of stock for minimum wholesale quantity (" + moq + ")", Toast.LENGTH_SHORT).show();

@@ -12,7 +12,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.snackbar.Snackbar;
+import com.retail.customershoppingapp.R;
 import com.retail.customershoppingapp.databinding.FragmentCartBinding;
 import com.retail.customershoppingapp.model.cart.CartItem;
 import com.retail.customershoppingapp.ui.checkout.CheckoutActivity;
@@ -40,6 +45,8 @@ public class CartFragment extends Fragment implements CartAdapter.OnCartItemActi
         cartAdapter = new CartAdapter(this);
         binding.rvCartItems.setAdapter(cartAdapter);
 
+        setupSwipeToDelete();
+
         cartViewModel.getCartItems().observe(getViewLifecycleOwner(), this::updateCartUI);
 
         binding.btnCheckout.setOnClickListener(v -> {
@@ -48,6 +55,39 @@ public class CartFragment extends Fragment implements CartAdapter.OnCartItemActi
                 startActivity(intent);
             }
         });
+
+        binding.btnShopNowEmpty.setOnClickListener(v -> {
+            BottomNavigationView bottomNav = requireActivity().findViewById(R.id.bottom_navigation);
+            if (bottomNav != null) {
+                bottomNav.setSelectedItemId(R.id.nav_home);
+            }
+        });
+    }
+
+    private void setupSwipeToDelete() {
+        ItemTouchHelper.SimpleCallback swipeCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int pos = viewHolder.getBindingAdapterPosition();
+                CartItem removedItem = cartAdapter.getItemAt(pos);
+                if (removedItem != null) {
+                    cartViewModel.removeFromCart(removedItem);
+                    Snackbar.make(binding.getRoot(), "Removed from cart", Snackbar.LENGTH_LONG)
+                            .setAction("UNDO", v -> cartViewModel.addToCart(
+                                    removedItem.getProduct(),
+                                    removedItem.getVariant(),
+                                    removedItem.getQuantity(),
+                                    removedItem.getItemNote()))
+                            .show();
+                }
+            }
+        };
+        new ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvCartItems);
     }
 
     private void updateCartUI(List<CartItem> items) {
@@ -59,8 +99,9 @@ public class CartFragment extends Fragment implements CartAdapter.OnCartItemActi
             binding.layoutCartContent.setVisibility(View.VISIBLE);
             cartAdapter.setCartItems(items);
 
-            binding.tvCartSubtotal.setText("₹" + cartViewModel.getSubtotal());
-            binding.tvCartTotal.setText("₹" + cartViewModel.getSubtotal());
+            String subtotalStr = "₹" + cartViewModel.getSubtotal().stripTrailingZeros().toPlainString();
+            binding.tvCartSubtotal.setText(subtotalStr);
+            binding.tvCartTotal.setText(subtotalStr);
         }
     }
 
@@ -72,6 +113,10 @@ public class CartFragment extends Fragment implements CartAdapter.OnCartItemActi
     @Override
     public void onItemRemoved(CartItem item) {
         cartViewModel.removeFromCart(item);
+        Snackbar.make(binding.getRoot(), "Item removed", Snackbar.LENGTH_LONG)
+                .setAction("UNDO", v -> cartViewModel.addToCart(
+                        item.getProduct(), item.getVariant(), item.getQuantity(), item.getItemNote()))
+                .show();
     }
 
     @Override

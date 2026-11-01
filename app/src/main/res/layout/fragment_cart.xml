@@ -7,17 +7,33 @@
     android:background="@color/background"
     android:orientation="vertical">
 
-    <TextView
+    <!-- Gradient Top App Bar -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary"
-        android:padding="16dp"
-        android:text="@string/nav_cart"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:background="@drawable/bg_header_gradient"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <!-- Empty Cart Layout -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wholesale Cart"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Multi-seller orders are split automatically at checkout"
+            android:textColor="@color/primary_container"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Empty Cart Layout with CTA -->
     <LinearLayout
         android:id="@+id/layout_empty_cart"
         android:layout_width="match_parent"
@@ -25,15 +41,24 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="32dp"
         android:visibility="gone">
 
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:contentDescription="@string/app_name"
-            android:src="@android:drawable/ic_input_add"
-            app:tint="@color/text_secondary" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            app:cardBackgroundColor="@color/accent_light"
+            app:cardCornerRadius="44dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/cart_empty"
+                android:src="@drawable/ic_nav_cart"
+                app:tint="@color/primary" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:layout_width="wrap_content"
@@ -47,14 +72,23 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:gravity="center"
-            android:text="@string/cart_empty_sub"
+            android:text="Add wholesale garment packs and custom seller notes to start your order."
             android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_shop_now_empty"
+            style="@style/Widget.FlowMart.Button.Primary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingHorizontal="24dp"
+            android:text="Explore Wholesale Catalog" />
     </LinearLayout>
 
-    <!-- Cart Items & Summary Layout -->
+    <!-- Active Cart Content -->
     <LinearLayout
         android:id="@+id/layout_cart_content"
         android:layout_width="match_parent"
@@ -72,21 +106,19 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_cart_item" />
 
-        <!-- Price Breakdown Container -->
+        <!-- Price Breakdown Card -->
         <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.FlowMart.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/surface"
-            app:cardCornerRadius="0dp"
-            app:cardElevation="8dp"
-            app:strokeColor="@color/border"
-            app:strokeWidth="1dp">
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -97,18 +129,18 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Subtotal"
+                        android:text="Wholesale Lot Subtotal"
                         android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/tv_cart_subtotal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/text_primary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
-                        tools:text="₹998" />
+                        tools:text="₹1,900" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -121,60 +153,61 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Delivery"
+                        android:text="Godown / Store Delivery"
                         android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="FREE"
-                        android:textColor="@color/success"
-                        android:textSize="14sp"
+                        android:textColor="@color/price_green"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginVertical="12dp"
-                    android:background="@color/divider" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Total Amount"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tv_cart_total"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        tools:text="₹998" />
-                </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_checkout"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="16dp"
-                    android:backgroundTint="@color/primary"
-                    android:text="@string/checkout"
-                    android:textColor="@color/white"
-                    android:textSize="15sp"
-                    app:cornerRadius="@dimen/button_corner_radius" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- Sticky Bottom Bar: Total on Left + Proceed to Checkout on Right -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bottom_sticky_bar_height"
+            android:background="@color/surface"
+            android:elevation="@dimen/elevation_sticky_bar"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Estimated Total"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/tv_cart_total"
+                    style="@style/TextAppearance.FlowMart.PriceLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/primary"
+                    tools:text="₹1,900" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_checkout"
+                style="@style/Widget.FlowMart.Button.AccentCTA"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:paddingHorizontal="24dp"
+                android:text="@string/checkout" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

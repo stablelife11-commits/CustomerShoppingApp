@@ -7,14 +7,16 @@
     android:background="@color/background"
     android:orientation="vertical">
 
+    <!-- Top App Bar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/primary"
-        app:navigationIcon="@android:drawable/ic_menu_revert"
+        android:background="@drawable/bg_header_gradient"
+        android:elevation="4dp"
+        app:navigationIcon="@drawable/ic_arrow_back"
         app:navigationIconTint="@color/white"
-        app:title="Product Details"
+        app:title="Wholesale Product Details"
         app:titleTextColor="@color/white" />
 
     <androidx.core.widget.NestedScrollView
@@ -28,16 +30,46 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 1. Image ViewPager / Carousel -->
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/view_pager_images"
+            <!-- 1. Image Carousel with Page Indicator & Wishlist Button -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/product_detail_image_height"
-                android:background="@color/white" />
+                android:background="@color/surface">
 
-            <!-- 2. Select Size Section -->
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/view_pager_images"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <ImageButton
+                    android:id="@+id/btn_detail_wishlist"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="14dp"
+                    android:background="@drawable/bg_circle_surface"
+                    android:contentDescription="Wishlist"
+                    android:padding="9dp"
+                    android:src="@drawable/ic_heart_outline" />
+
+                <TextView
+                    android:id="@+id/tv_image_page_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="12dp"
+                    android:background="@drawable/bg_badge_status"
+                    android:backgroundTint="@color/scrim_dark"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="1 / 1"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <!-- 2. Brand, Title, Rating & Wholesale Price Block -->
             <LinearLayout
-                android:id="@+id/layout_select_size"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/surface"
@@ -51,11 +83,126 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/tv_detail_brand"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:letterSpacing="0.05"
+                        android:textColor="@color/secondary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        tools:text="LUX WHOLESALE" />
+
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Select Size &amp; Wholesale Qty"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
+                        android:background="@drawable/bg_badge_rating"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="4.4"
+                            android:textColor="@color/white"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="11dp"
+                            android:layout_height="11dp"
+                            android:layout_marginStart="3dp"
+                            android:contentDescription="Rating"
+                            android:src="@drawable/ic_star_small" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_detail_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="Cotton White Vest (Wholesale Pack)" />
+
+                <!-- Price + MRP Strike + Discount % -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="bottom"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_detail_price"
+                        style="@style/TextAppearance.FlowMart.PriceLarge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="₹95" />
+
+                    <TextView
+                        android:id="@+id/tv_detail_mrp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textColor="@color/text_strike"
+                        android:textSize="14sp"
+                        tools:text="₹120" />
+
+                    <TextView
+                        android:id="@+id/tv_detail_discount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="20% margin"
+                        android:textColor="@color/price_green"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_gst_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Inclusive of GST • B2B Wholesale Rate"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- 3. Select Size & Wholesale Quantity Section -->
+            <LinearLayout
+                android:id="@+id/layout_select_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@color/surface"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/TextAppearance.FlowMart.SectionHeader"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Select Size &amp; Pack Quantity" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tap size to pick packs"
+                        android:textColor="@color/secondary"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -74,8 +221,8 @@
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:hint="Add Note for Seller (e.g., color mix, packing request)">
+                    android:layout_marginTop="14dp"
+                    android:hint="Note for Seller (e.g., color mix, packing instruction)">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_product_note"
@@ -87,104 +234,88 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:background="@color/border" />
-
-            <!-- 3. Product Info (Brand, Name, Price) -->
+            <!-- 4. Wholesale B2B Specifications & Description Card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:background="@color/surface"
                 android:orientation="vertical"
                 android:padding="16dp">
 
                 <TextView
-                    android:id="@+id/tv_detail_brand"
+                    style="@style/TextAppearance.FlowMart.SectionHeader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    tools:text="AMUL MACHO" />
-
-                <TextView
-                    android:id="@+id/tv_detail_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="16sp"
-                    tools:text="Pack of 3 Solid Men Brief" />
-
-                <TextView
-                    android:id="@+id/tv_detail_price"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:textColor="@color/primary"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    tools:text="₹499" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginVertical="16dp"
-                    android:background="@color/divider" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Product Description"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:text="Wholesale Specifications &amp; Details" />
 
                 <TextView
                     android:id="@+id/tv_detail_desc"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="4dp"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp"
-                    tools:text="High quality breathable cotton fabric. Ideal for daily wear." />
+                    tools:text="High quality breathable cotton fabric. Ideal for wholesale retail stores." />
+            </LinearLayout>
+
+            <!-- 5. Delivery & Seller Assurance Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/surface"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    style="@style/TextAppearance.FlowMart.SectionHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Wholesale Buyer Protection" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingExtra="3dp"
+                    android:text="• Seller reviews &amp; confirms stock/discounts on every order\n• Free doorstep godown delivery on confirmed orders\n• Easy defective item return on delivered orders"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
             </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Buttons Bar -->
+    <!-- Sticky Bottom Action Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/bottom_sticky_bar_height"
         android:background="@color/surface"
-        android:elevation="8dp"
+        android:elevation="@dimen/elevation_sticky_bar"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_detail_add_cart"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.FlowMart.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            android:text="@string/add_to_cart"
-            android:textColor="@color/primary"
-            app:cornerRadius="8dp"
-            app:strokeColor="@color/primary" />
+            android:text="@string/add_to_cart" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_detail_buy_now"
+            style="@style/Widget.FlowMart.Button.AccentCTA"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_marginStart="6dp"
             android:layout_weight="1"
-            android:text="@string/buy_now"
-            android:textColor="@color/black"
-            app:backgroundTint="#FFC107"
-            app:cornerRadius="8dp" />
+            android:text="@string/buy_now" />
     </LinearLayout>
 </LinearLayout>

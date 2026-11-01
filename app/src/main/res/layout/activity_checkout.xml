@@ -1,115 +1,196 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"
+    android:background="@color/background"
     android:orientation="vertical">
 
+    <!-- Top App Bar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#FFFFFF"
-        app:navigationIcon="@android:drawable/ic_menu_revert"
-        app:title="Checkout" />
+        android:background="@drawable/bg_header_gradient"
+        android:elevation="4dp"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="@color/white"
+        app:title="Wholesale Checkout"
+        app:titleTextColor="@color/white" />
+
+    <!-- 3-Step Checkout Stepper Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:elevation="2dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="① Address"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="28dp"
+            android:layout_height="2dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="@color/primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="② Lot Summary"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="28dp"
+            android:layout_height="2dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="@color/border" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="③ Seller Review"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="16dp">
+        android:padding="14dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 🟢 NAYA: Delivery Address Form -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Delivery Address"
-                android:textColor="#1F2937"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <!-- Delivery Address Card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.FlowMart.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="House No, Street, City, Pincode">
+                android:layout_marginBottom="14dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_delivery_address"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textMultiLine"
-                    android:minLines="3" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Order Summary"
-                android:textColor="#1F2937"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                    <TextView
+                        style="@style/TextAppearance.FlowMart.SectionHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:text="📍 Shop / Godown Delivery Address" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_checkout_items"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Shop Name, Market, Street, City &amp; Pincode *">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_delivery_address"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textMultiLine"
+                            android:minLines="3" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Order Summary Card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.FlowMart.Card"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/TextAppearance.FlowMart.SectionHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="📦 Wholesale Items &amp; Notes" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_checkout_items"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Action Bar -->
+    <!-- Sticky Bottom Place Order Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        android:elevation="8dp"
+        android:layout_height="@dimen/bottom_sticky_bar_height"
+        android:background="@color/surface"
+        android:elevation="@dimen/elevation_sticky_bar"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp">
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Total Amount"
-                android:textSize="12sp" />
+                android:text="Total Payable"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
             <TextView
                 android:id="@+id/tv_total_amount"
+                style="@style/TextAppearance.FlowMart.PriceLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#3F51B5"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textColor="@color/primary"
+                tools:text="₹1,900.00" />
         </LinearLayout>
 
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_place_order"
-                android:layout_width="150dp"
+                style="@style/Widget.FlowMart.Button.AccentCTA"
+                android:layout_width="170dp"
                 android:layout_height="50dp"
-                android:text="Place Order"
-                app:cornerRadius="8dp" />
+                android:text="Place Order" />
+
             <ProgressBar
                 android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:visibility="gone" />
         </FrameLayout>

@@ -11,15 +11,17 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/primary"
-        app:navigationIcon="@android:drawable/ic_menu_revert"
+        android:background="@drawable/bg_header_gradient"
+        android:elevation="4dp"
+        app:navigationIcon="@drawable/ic_arrow_back"
         app:navigationIconTint="@color/white"
-        app:title="Order Details"
+        app:title="Wholesale Order Details"
         app:titleTextColor="@color/white" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:fillViewport="true">
 
         <LinearLayout
@@ -30,13 +32,10 @@
 
             <!-- Order Header Card -->
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.FlowMart.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/surface"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
-                app:strokeColor="@color/border"
-                app:strokeWidth="1dp">
+                android:layout_marginBottom="12dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -51,16 +50,16 @@
                         android:textColor="@color/primary"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        tools:text="Order #1024" />
+                        tools:text="Order #1024 • SELLER CONFIRMED" />
 
                     <TextView
                         android:id="@+id/tv_detail_order_date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="6dp"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
-                        tools:text="Placed on 2025-05-18" />
+                        tools:text="Placed on 2026-10-08 14:30\nDelivery Address: Main Market, Kunda" />
 
                     <View
                         android:layout_width="match_parent"
@@ -68,68 +67,73 @@
                         android:layout_marginVertical="12dp"
                         android:background="@color/divider" />
 
-                    <!-- Order Timeline -->
+                    <!-- Status-Driven Dynamic Timeline -->
                     <TextView
+                        style="@style/TextAppearance.FlowMart.SectionHeader"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Order Timeline"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:text="Order Fulfillment Timeline" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="10dp"
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/timeline_placed"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="✓ Order Placed"
+                            android:text="✓ Order Placed by Buyer"
                             android:textColor="@color/success"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/timeline_confirmed"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="✓ Order Confirmed"
-                            android:textColor="@color/success"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
+                            android:text="○ Seller Reviewed &amp; Confirmed Lot"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
 
                         <TextView
+                            android:id="@+id/timeline_processing"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="● Processing &amp; Packing"
-                            android:textColor="@color/primary"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
+                            android:text="○ Godown Processing &amp; Packing"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
 
                         <TextView
+                            android:id="@+id/timeline_shipped"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="○ Out for Delivery"
+                            android:text="○ Dispatched / Out for Delivery"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/timeline_delivered"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="○ Delivered to Store"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Products Card -->
+            <!-- Items Purchased Card -->
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.FlowMart.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardBackgroundColor="@color/surface"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
-                app:strokeColor="@color/border"
-                app:strokeWidth="1dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -138,12 +142,10 @@
                     android:padding="16dp">
 
                     <TextView
+                        style="@style/TextAppearance.FlowMart.SectionHeader"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Items Purchased"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
+                        android:text="Confirmed Order Line Items" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rv_order_detail_items"
@@ -168,22 +170,33 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Total Amount Paid"
+                            android:text="Final Payable Total"
                             android:textColor="@color/text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tv_detail_order_total"
+                            style="@style/TextAppearance.FlowMart.PriceLarge"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/primary"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            tools:text="₹1,299" />
+                            tools:text="₹1,900.00" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Action Button: Cancel Order (if PLACED) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cancel_order"
+                style="@style/Widget.FlowMart.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="Cancel This Order"
+                android:textColor="@color/error"
+                app:strokeColor="@color/error"
+                android:visibility="gone"
+                tools:visibility="visible" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>

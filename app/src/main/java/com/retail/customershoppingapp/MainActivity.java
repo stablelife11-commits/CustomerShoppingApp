@@ -1,17 +1,20 @@
 package com.retail.customershoppingapp;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.view.Menu;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.badge.BadgeDrawable;
 import com.retail.customershoppingapp.databinding.ActivityMainBinding;
 import com.retail.customershoppingapp.session.SessionManager;
 import com.retail.customershoppingapp.ui.auth.LoginActivity;
-
 import com.retail.customershoppingapp.ui.cart.CartFragment;
 import com.retail.customershoppingapp.ui.cart.CartViewModel;
 import com.retail.customershoppingapp.ui.category.CategoriesFragment;
@@ -24,6 +27,14 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private SessionManager sessionManager;
     private CartViewModel cartViewModel;
+
+    private final Fragment homeFragment = new HomeFragment();
+    private final Fragment categoriesFragment = new CategoriesFragment();
+    private final Fragment cartFragment = new CartFragment();
+    private final Fragment ordersFragment = new OrderHistoryFragment();
+    private final Fragment profileFragment = new ProfileFragment();
+    private final FragmentManager fm = getSupportFragmentManager();
+    private Fragment activeFragment = homeFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,45 +52,83 @@ public class MainActivity extends AppCompatActivity {
 
         cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
 
+        setupBottomNavIconsAndColors();
+        setupFragments(savedInstanceState);
         setupBottomNavigation();
+        observeCartBadge();
+    }
 
-        if (savedInstanceState == null) {
-            loadFragment(new HomeFragment());
+    private void setupBottomNavIconsAndColors() {
+        // 1. Force-set custom vector icons in Java to bypass any cached XML menu state
+        Menu menu = binding.bottomNavigation.getMenu();
+        if (menu.findItem(R.id.nav_home) != null) {
+            menu.findItem(R.id.nav_home).setIcon(R.drawable.ic_nav_home);
+        }
+        if (menu.findItem(R.id.nav_categories) != null) {
+            menu.findItem(R.id.nav_categories).setIcon(R.drawable.ic_nav_categories);
+        }
+        if (menu.findItem(R.id.nav_cart) != null) {
+            menu.findItem(R.id.nav_cart).setIcon(R.drawable.ic_nav_cart);
+        }
+        if (menu.findItem(R.id.nav_orders) != null) {
+            menu.findItem(R.id.nav_orders).setIcon(R.drawable.ic_nav_orders);
+        }
+        if (menu.findItem(R.id.nav_account) != null) {
+            menu.findItem(R.id.nav_account).setIcon(R.drawable.ic_nav_account);
         }
 
-        observeCartBadge();
+        // 2. Active (Blue) vs Inactive (Grey) ColorStateList
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_checked},
+                new int[]{-android.R.attr.state_checked}
+        };
+        int[] colors = new int[]{
+                ContextCompat.getColor(this, R.color.primary),
+                ContextCompat.getColor(this, R.color.text_secondary)
+        };
+        ColorStateList navColorStateList = new ColorStateList(states, colors);
+        binding.bottomNavigation.setItemIconTintList(navColorStateList);
+        binding.bottomNavigation.setItemTextColor(navColorStateList);
+    }
+
+    private void setupFragments(Bundle savedInstanceState) {
+        int containerId = binding.fragmentContainer.getId();
+        if (savedInstanceState == null) {
+            fm.beginTransaction()
+                    .add(containerId, profileFragment, "5").hide(profileFragment)
+                    .add(containerId, ordersFragment, "4").hide(ordersFragment)
+                    .add(containerId, cartFragment, "3").hide(cartFragment)
+                    .add(containerId, categoriesFragment, "2").hide(categoriesFragment)
+                    .add(containerId, homeFragment, "1")
+                    .commit();
+            activeFragment = homeFragment;
+            binding.bottomNavigation.setSelectedItemId(R.id.nav_home);
+        }
     }
 
     private void setupBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
-            Fragment selectedFragment = null;
+            Fragment target = homeFragment;
             int itemId = item.getItemId();
 
             if (itemId == R.id.nav_home) {
-                selectedFragment = new HomeFragment();
+                target = homeFragment;
             } else if (itemId == R.id.nav_categories) {
-                selectedFragment = new CategoriesFragment();
+                target = categoriesFragment;
             } else if (itemId == R.id.nav_cart) {
-                selectedFragment = new CartFragment();
+                target = cartFragment;
             } else if (itemId == R.id.nav_orders) {
-                selectedFragment = new OrderHistoryFragment();
+                target = ordersFragment;
             } else if (itemId == R.id.nav_account) {
-                selectedFragment = new ProfileFragment();
+                target = profileFragment;
             }
 
-            if (selectedFragment != null) {
-                loadFragment(selectedFragment);
-                return true;
+            if (target != activeFragment) {
+                fm.beginTransaction().hide(activeFragment).show(target).commit();
+                activeFragment = target;
             }
-            return false;
+            return true;
         });
-    }
-
-    private void loadFragment(Fragment fragment) {
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .commit();
     }
 
     private void observeCartBadge() {

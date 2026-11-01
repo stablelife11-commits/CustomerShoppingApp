@@ -53,11 +53,11 @@ public class ImageCarouselAdapter extends RecyclerView.Adapter<ImageCarouselAdap
             if (url != null && !url.isEmpty()) {
                 Glide.with(binding.getRoot().getContext())
                         .load(url)
-                        .placeholder(R.drawable.ic_launcher_background)
-                        .error(R.drawable.ic_launcher_background)
+                        .placeholder(R.drawable.ic_product_placeholder)
+                        .error(R.drawable.ic_product_placeholder)
                         .into(binding.ivSliderImage);
             } else {
-                binding.ivSliderImage.setImageResource(R.drawable.ic_launcher_background);
+                binding.ivSliderImage.setImageResource(R.drawable.ic_product_placeholder);
             }
         }
     }

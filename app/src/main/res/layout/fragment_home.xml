@@ -17,14 +17,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Top Header Bar -->
+            <!-- 1. Gradient Brand App Bar + Delivery Strip + Rounded Search Bar -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/primary"
+                android:background="@drawable/bg_header_gradient"
+                android:elevation="4dp"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="16dp">
 
+                <!-- Top Row: Brand Name + Wholesale Badge + Wishlist & Notification Icons -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -32,24 +36,77 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:letterSpacing="0.02"
                         android:text="@string/app_name"
                         android:textColor="@color/white"
-                        android:textSize="20sp"
+                        android:textSize="22sp"
                         android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_badge_rating"
+                        android:backgroundTint="@color/accent_cta"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="B2B WHOLESALE"
+                        android:textColor="@color/black"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <ImageButton
+                        android:id="@+id/btn_header_notifications"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Notifications"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_bell" />
                 </LinearLayout>
 
-                <!-- Search Input Bar -->
+                <!-- Delivery Location Strip -->
+                <LinearLayout
+                    android:id="@+id/layout_location_chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="2dp">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:contentDescription="Location"
+                        android:src="@drawable/ic_location_pin" />
+
+                    <TextView
+                        android:id="@+id/tv_delivery_location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="Deliver to: Direct Store / Godown • Change ▾"
+                        android:textColor="@color/primary_container"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Search Input Bar with Search, Mic & Lens Icons -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_search"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="12dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="22dp"
-                    app:cardElevation="2dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    app:cardBackgroundColor="@color/surface"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="3dp"
                     app:strokeWidth="0dp">
 
                     <LinearLayout
@@ -57,51 +114,124 @@
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
+                        android:paddingHorizontal="14dp">
 
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:contentDescription="@string/app_name"
-                            android:src="@android:drawable/ic_menu_search"
-                            app:tint="@color/text_secondary" />
+                            android:contentDescription="@string/search_hint"
+                            android:src="@drawable/ic_search_modern" />
 
                         <EditText
                             android:id="@+id/et_search"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_marginStart="10dp"
+                            android:layout_marginHorizontal="10dp"
+                            android:layout_weight="1"
                             android:background="@null"
-                            android:hint="@string/search_hint"
+                            android:hint="Search garments, brands, SKUs…"
                             android:imeOptions="actionSearch"
                             android:inputType="text"
+                            android:maxLines="1"
                             android:textColor="@color/text_primary"
                             android:textColorHint="@color/text_hint"
                             android:textSize="14sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_search_camera"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="10dp"
+                            android:contentDescription="Visual Search"
+                            android:src="@drawable/ic_camera_lens" />
+
+                        <ImageView
+                            android:id="@+id/iv_search_mic"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="Voice Search"
+                            android:src="@drawable/ic_mic" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <!-- Banner Card -->
+            <!-- 2. Wholesale Trust Strip -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/surface"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="✓ Direct Mill Rates"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="✓ GST Billing"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="✓ Bulk Pack Discounts"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 3. Promotional Hero Banner Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_hero_banner"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/banner_height"
-                android:layout_margin="16dp"
-                app:cardBackgroundColor="@color/primary"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="14dp"
+                app:cardCornerRadius="@dimen/radius_large"
+                app:cardElevation="3dp"
                 app:strokeWidth="0dp">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="20dp">
+                    android:background="@drawable/bg_header_gradient"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:id="@+id/tv_banner_tag"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_badge_discount"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="WHOLESALE MEGA MELA"
+                        android:textColor="@color/white"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tv_banner_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Summer Collection"
+                        android:layout_below="@id/tv_banner_tag"
+                        android:layout_marginTop="8dp"
+                        android:text="Festive Garment Lots"
                         android:textColor="@color/white"
                         android:textSize="22sp"
                         android:textStyle="bold" />
@@ -112,41 +242,77 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_banner_title"
                         android:layout_marginTop="4dp"
-                        android:text="Discover high quality products at unbeatable prices"
-                        android:textColor="@color/accent_light"
+                        android:text="Up to 25% margin on bulk innerwear &amp; apparel packs"
+                        android:textColor="@color/primary_container"
                         android:textSize="12sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_banner_explore"
+                        style="@style/Widget.FlowMart.Button.AccentCTA"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
+                        android:layout_height="38dp"
                         android:layout_alignParentBottom="true"
-                        android:backgroundTint="@color/white"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
-                        android:text="Shop Now"
-                        android:textColor="@color/primary"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="@dimen/button_corner_radius" />
+                        android:text="Explore Lots →"
+                        android:textSize="12sp" />
+
+                    <!-- Carousel Indicator Dots -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentBottom="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:id="@+id/dot_1"
+                            android:layout_width="16dp"
+                            android:layout_height="6dp"
+                            android:layout_marginEnd="4dp"
+                            android:background="@drawable/bg_search_pill"
+                            android:backgroundTint="@color/accent_cta" />
+
+                        <View
+                            android:id="@+id/dot_2"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:layout_marginEnd="4dp"
+                            android:background="@drawable/bg_circle_surface" />
+
+                        <View
+                            android:id="@+id/dot_3"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="@drawable/bg_circle_surface" />
+                    </LinearLayout>
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Categories Section Header -->
+            <!-- 4. Circular Categories Strip -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp">
 
                 <TextView
+                    style="@style/TextAppearance.FlowMart.SectionHeader"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/categories"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
+                    android:text="Shop by Category" />
+
+                <TextView
+                    android:id="@+id/tv_view_all_categories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/view_all"
+                    android:textColor="@color/secondary"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -157,74 +323,202 @@
                 android:clipToPadding="false"
                 android:orientation="horizontal"
                 android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
+                android:paddingVertical="6dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/item_category" />
 
-            <!-- Featured Products Header -->
+            <!-- 5. Deals of the Day Horizontal Rail -->
+            <LinearLayout
+                android:id="@+id/layout_deals_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@color/accent_gold_bg"
+                android:orientation="vertical"
+                android:paddingVertical="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        style="@style/TextAppearance.FlowMart.SectionHeader"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="⚡ Wholesale Deals of the Day" />
+
+                    <TextView
+                        android:id="@+id/tv_view_all_deals"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="See All →"
+                        android:textColor="@color/primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_deals"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="10dp"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_product_card" />
+            </LinearLayout>
+
+            <!-- 6. Recommended 2-Column Product Grid Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp">
 
                 <TextView
+                    style="@style/TextAppearance.FlowMart.SectionHeader"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/featured_products"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
+                    android:text="Recommended Wholesale Lots" />
+
+                <TextView
+                    android:id="@+id/tv_view_all_products"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/view_all"
+                    android:textColor="@color/secondary"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Loading & Error layouts -->
-            <ProgressBar
-                android:id="@+id/progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="24dp"
-                android:visibility="gone" />
-
+            <!-- 7. Skeleton Shimmer Loading Placeholder (Replaces plain spinner) -->
             <LinearLayout
-                android:id="@+id/layout_error"
+                android:id="@+id/layout_shimmer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:orientation="vertical"
-                android:padding="24dp"
+                android:padding="12dp"
                 android:visibility="gone">
 
-                <TextView
-                    android:id="@+id/tv_error_msg"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/error_generic"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_retry"
-                    android:layout_width="wrap_content"
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="240dp"
+                        android:layout_margin="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_shimmer_bone" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="240dp"
+                        android:layout_margin="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_shimmer_bone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:backgroundTint="@color/primary"
-                    android:text="@string/retry" />
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="240dp"
+                        android:layout_margin="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_shimmer_bone" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="240dp"
+                        android:layout_margin="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_shimmer_bone" />
+                </LinearLayout>
             </LinearLayout>
 
+            <!-- Hidden legacy ProgressBar kept for ID compatibility -->
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="1dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
+
+            <!-- Friendly Error / Offline State Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layout_error"
+                style="@style/Widget.FlowMart.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <ImageView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:contentDescription="@string/error_generic"
+                        android:src="@drawable/ic_product_placeholder" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Unable to load wholesale catalog"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_error_msg"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:text="@string/error_generic"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_retry"
+                        style="@style/Widget.FlowMart.Button.Primary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/retry" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Main 2-Column Product Grid -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_products"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
                 android:padding="10dp"
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 app:spanCount="2"
                 tools:listitem="@layout/item_product_card" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

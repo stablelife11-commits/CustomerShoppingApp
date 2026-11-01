@@ -36,6 +36,13 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    public CartItem getItemAt(int position) {
+        if (position >= 0 && position < cartItems.size()) {
+            return cartItems.get(position);
+        }
+        return null;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -80,9 +87,9 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
                 if (v.getColor() != null) {
                     variantInfo.append("| ").append(v.getColor()).append(" ");
                 }
-                variantInfo.append("(MOQ: ").append(moq).append(", Pack: ").append(packSize).append(")");
+                variantInfo.append("• MOQ: ").append(moq).append(" • Pack: ").append(packSize);
             } else {
-                variantInfo.append("Standard");
+                variantInfo.append("Standard Wholesale Lot");
             }
 
             if (item.getItemNote() != null && !item.getItemNote().trim().isEmpty()) {
@@ -98,18 +105,18 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
                 }
             });
 
-            binding.tvCartPrice.setText("₹" + item.getTotalPrice());
+            binding.tvCartPrice.setText("₹" + item.getTotalPrice().stripTrailingZeros().toPlainString());
             binding.tvQuantity.setText(String.valueOf(item.getQuantity()));
 
             String imgUrl = item.getProduct() != null ? item.getProduct().getPrimaryImageUrl() : null;
             if (imgUrl != null && !imgUrl.isEmpty()) {
                 Glide.with(binding.getRoot().getContext())
                         .load(imgUrl)
-                        .placeholder(R.drawable.ic_launcher_background)
-                        .error(R.drawable.ic_launcher_background)
+                        .placeholder(R.drawable.ic_product_placeholder)
+                        .error(R.drawable.ic_product_placeholder)
                         .into(binding.ivCartProduct);
             } else {
-                binding.ivCartProduct.setImageResource(R.drawable.ic_launcher_background);
+                binding.ivCartProduct.setImageResource(R.drawable.ic_product_placeholder);
             }
 
             binding.btnPlus.setOnClickListener(vView -> {
@@ -130,7 +137,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
                     int prevQty = item.getQuantity() - packSize;
                     if (prevQty < moq) {
                         Toast.makeText(binding.getRoot().getContext(),
-                                "Minimum Order Quantity is " + moq + " units (Use trash icon to remove)",
+                                "Minimum Order Quantity is " + moq + " units (Swipe or tap trash icon to remove)",
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }

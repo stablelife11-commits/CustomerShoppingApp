@@ -1,6 +1,7 @@
 package com.retail.customershoppingapp.ui.product;
 
 import android.content.Intent;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -8,13 +9,17 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.retail.customershoppingapp.R;
 import com.retail.customershoppingapp.databinding.ActivityProductDetailBinding;
 import com.retail.customershoppingapp.model.product.ProductResponse;
 import com.retail.customershoppingapp.model.product.VariantResponse;
 import com.retail.customershoppingapp.ui.cart.CartViewModel;
 import com.retail.customershoppingapp.ui.checkout.CheckoutActivity;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +32,7 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
     private ProductResponse product;
     private VariantAdapter variantAdapter;
     private ImageCarouselAdapter imageCarouselAdapter;
+    private boolean isWishlisted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +57,18 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
     }
 
     private void setupUI() {
-        binding.tvDetailBrand.setText(product.getBrand() != null && !product.getBrand().isEmpty() ?
-                product.getBrand().toUpperCase() : "RETAIL FLOW");
+        binding.tvDetailBrand.setText(product.getBrand() != null && !product.getBrand().isEmpty()
+                ? product.getBrand().toUpperCase(Locale.ROOT)
+                : "FLOWMART WHOLESALE");
         binding.tvDetailName.setText(product.getName() != null ? product.getName() : "Product");
+
+        BigDecimal minPrice = product.getMinPrice();
+        binding.tvDetailPrice.setText("₹" + minPrice.stripTrailingZeros().toPlainString());
+        if (minPrice.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal mrp = minPrice.multiply(new BigDecimal("1.25")).setScale(0, RoundingMode.CEILING);
+            binding.tvDetailMrp.setText("MRP ₹" + mrp.toPlainString());
+            binding.tvDetailMrp.setPaintFlags(binding.tvDetailMrp.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+        }
 
         StringBuilder descBuilder = new StringBuilder();
         if (product.getDescription() != null && !product.getDescription().isEmpty()) {
@@ -61,18 +76,17 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
         }
         if (product.getVariants() != null && !product.getVariants().isEmpty()) {
             VariantResponse v0 = product.getVariants().get(0);
-            descBuilder.append("• Wholesale MOQ: ").append(v0.getMinimumOrderQuantity()).append(" units\n")
-                    .append("• Pack / Set Size: ").append(v0.getPackSize()).append(" units per pack");
+            descBuilder.append("• Minimum Order Quantity (MOQ): ").append(v0.getMinimumOrderQuantity()).append(" units\n")
+                    .append("• Wholesale Pack Size: ").append(v0.getPackSize()).append(" units per pack");
             if (v0.getGstPercentage() != null && v0.getGstPercentage().doubleValue() > 0) {
-                descBuilder.append("\n• GST: ").append(v0.getGstPercentage().stripTrailingZeros().toPlainString()).append("%");
+                descBuilder.append("\n• GST Rate: ").append(v0.getGstPercentage().stripTrailingZeros().toPlainString()).append("%");
+                binding.tvGstBadge.setText("Inclusive of " + v0.getGstPercentage().stripTrailingZeros().toPlainString() + "% GST • B2B Wholesale Rate");
             }
             if (v0.getHsnCode() != null && !v0.getHsnCode().isEmpty()) {
-                descBuilder.append(" (HSN: ").append(v0.getHsnCode()).append(")");
+                descBuilder.append(" (HSN Code: ").append(v0.getHsnCode()).append(")");
             }
         }
         binding.tvDetailDesc.setText(descBuilder.toString().trim());
-
-        binding.tvDetailPrice.setText("₹" + product.getMinPrice());
 
         imageCarouselAdapter = new ImageCarouselAdapter();
         binding.viewPagerImages.setAdapter(imageCarouselAdapter);
@@ -82,7 +96,24 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
             images = new ArrayList<>();
             images.add("");
         }
+        final int totalImages = images.size();
         imageCarouselAdapter.setImageUrls(images);
+        binding.tvImagePageIndicator.setText(String.format(Locale.getDefault(), "1 / %d", totalImages));
+
+        binding.viewPagerImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                binding.tvImagePageIndicator.setText(String.format(Locale.getDefault(), "%d / %d", position + 1, totalImages));
+            }
+        });
+
+        binding.btnDetailWishlist.setOnClickListener(v -> {
+            isWishlisted = !isWishlisted;
+            binding.btnDetailWishlist.setImageResource(isWishlisted ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+            v.animate().scaleX(1.25f).scaleY(1.25f).setDuration(120)
+                    .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(120).start())
+                    .start();
+        });
 
         variantAdapter = new VariantAdapter(this);
         binding.rvVariants.setAdapter(variantAdapter);
@@ -97,7 +128,7 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
             HashMap<Long, Integer> selections = variantAdapter.getSelectedQuantities();
 
             if (selections.isEmpty()) {
-                Toast.makeText(this, "Please tap a size chip above to select quantity", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please tap a size chip above to select wholesale quantity", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -123,7 +154,7 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
             HashMap<Long, Integer> selections = variantAdapter.getSelectedQuantities();
 
             if (selections.isEmpty()) {
-                Toast.makeText(this, "Please tap a size chip above to select quantity", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please tap a size chip above to select wholesale quantity", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -188,9 +219,9 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
                     variantAdapter.updateSelection(variant, selectedQty);
 
                     if (variant.getSellingPrice() != null && selectedQty > 0) {
-                        binding.tvDetailPrice.setText("₹" + variant.getSellingPrice() + " / unit");
+                        binding.tvDetailPrice.setText("₹" + variant.getSellingPrice().stripTrailingZeros().toPlainString() + " / pc");
                     } else if (variantAdapter.getSelectedQuantities().isEmpty()) {
-                        binding.tvDetailPrice.setText("₹" + product.getMinPrice());
+                        binding.tvDetailPrice.setText("₹" + product.getMinPrice().stripTrailingZeros().toPlainString());
                     }
                 })
                 .setNegativeButton("Cancel", null)
