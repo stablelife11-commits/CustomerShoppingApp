@@ -26,6 +26,10 @@ public class CartViewModel extends AndroidViewModel {
         return cartRepository.getCartLiveData();
     }
 
+    public void refreshCart() {
+        cartRepository.refreshLocalCart();
+    }
+
     public void addToCart(ProductResponse product, VariantResponse variant, int quantity) {
         cartRepository.addToCart(product, variant, quantity, null);
     }

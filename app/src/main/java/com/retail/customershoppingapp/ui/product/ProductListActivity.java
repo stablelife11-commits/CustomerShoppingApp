@@ -2,6 +2,8 @@ package com.retail.customershoppingapp.ui.product;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -40,6 +42,9 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
     private final int PAGE_SIZE = 20;
     private boolean isTwoColumnGrid = true;
 
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
+
     private int sortIndex = 0;
     private final String[] sortOptions = {"Recommended", "Price: Low to High", "Price: High to Low", "Name (A–Z)"};
     private final String[] sortKeys = {"RECOMMENDED", "PRICE_LOW_HIGH", "PRICE_HIGH_LOW", "NAME"};
@@ -60,7 +65,6 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
 
         binding.btnBack.setOnClickListener(v -> finish());
 
-        // Toggle between 2-column grid and 1-column list
         binding.btnToggleLayout.setOnClickListener(v -> {
             isTwoColumnGrid = !isTwoColumnGrid;
             gridLayoutManager.setSpanCount(isTwoColumnGrid ? 2 : 1);
@@ -86,8 +90,15 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                productViewModel.setSearchQuery(s.toString());
-                applyFilters();
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
+                final String query = s != null ? s.toString() : "";
+                searchRunnable = () -> {
+                    productViewModel.setSearchQuery(query);
+                    resetAndReloadFromServer();
+                };
+                searchHandler.postDelayed(searchRunnable, 350);
             }
 
             @Override
@@ -110,12 +121,15 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
         binding.chipCategory.setOnClickListener(v -> {
             productViewModel.setSelectedCategory("ALL");
             binding.chipCategory.setText("Category: All");
-            applyFilters();
+            resetAndReloadFromServer();
         });
 
         binding.chipInStock.setOnCheckedChangeListener((buttonView, isChecked) -> applyFilters());
 
         binding.btnResetFilters.setOnClickListener(v -> {
+            if (searchRunnable != null) {
+                searchHandler.removeCallbacks(searchRunnable);
+            }
             binding.etSearchList.setText("");
             productViewModel.setSearchQuery("");
             productViewModel.setSelectedCategory("ALL");
@@ -124,7 +138,7 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
             binding.chipSort.setText("Sort: Recommended");
             binding.chipCategory.setText("Category: All");
             binding.chipInStock.setChecked(false);
-            applyFilters();
+            resetAndReloadFromServer();
         });
 
         binding.rvProductList.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -147,6 +161,12 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
         });
 
         loadProducts(currentPage);
+    }
+
+    private void resetAndReloadFromServer() {
+        currentPage = 0;
+        isLastPage = false;
+        loadProducts(0);
     }
 
     private void loadProducts(int page) {
@@ -233,5 +253,13 @@ public class ProductListActivity extends AppCompatActivity implements ProductAda
         } else {
             Toast.makeText(this, "No variants available", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (searchRunnable != null) {
+            searchHandler.removeCallbacks(searchRunnable);
+        }
+        super.onDestroy();
     }
 }

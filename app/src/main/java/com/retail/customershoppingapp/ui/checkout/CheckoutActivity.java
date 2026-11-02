@@ -109,10 +109,16 @@ public class CheckoutActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, OrderSuccessActivity.class);
                 if (createdOrders != null && !createdOrders.isEmpty()) {
                     OrderResponse first = createdOrders.get(0);
+                    StringBuilder ids = new StringBuilder();
+                    for (OrderResponse o : createdOrders) {
+                        if (ids.length() > 0) ids.append(", ");
+                        ids.append("#").append(o.getId());
+                    }
                     String refText = createdOrders.size() == 1
                             ? "Order #" + first.getId()
-                            : createdOrders.size() + " Seller Orders Placed (First: #" + first.getId() + ")";
+                            : createdOrders.size() + " Seller Orders (" + ids + ")";
                     intent.putExtra("order_ref", refText);
+                    intent.putExtra("order_count", createdOrders.size());
                     intent.putExtra("order_data", first);
                 }
                 startActivity(intent);

@@ -64,6 +64,22 @@ public class CartFragment extends Fragment implements CartAdapter.OnCartItemActi
         });
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (cartViewModel != null) {
+            cartViewModel.refreshCart();
+        }
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && cartViewModel != null) {
+            cartViewModel.refreshCart();
+        }
+    }
+
     private void setupSwipeToDelete() {
         ItemTouchHelper.SimpleCallback swipeCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -91,6 +107,7 @@ public class CartFragment extends Fragment implements CartAdapter.OnCartItemActi
     }
 
     private void updateCartUI(List<CartItem> items) {
+        if (binding == null) return;
         if (items == null || items.isEmpty()) {
             binding.layoutEmptyCart.setVisibility(View.VISIBLE);
             binding.layoutCartContent.setVisibility(View.GONE);

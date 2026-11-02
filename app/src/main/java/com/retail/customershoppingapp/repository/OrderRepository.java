@@ -50,10 +50,14 @@ public class OrderRepository {
     }
 
     public LiveData<Resource<List<OrderResponse>>> getOrders() {
+        return getOrders(0, 50);
+    }
+
+    public LiveData<Resource<List<OrderResponse>>> getOrders(int page, int size) {
         MutableLiveData<Resource<List<OrderResponse>>> result = new MutableLiveData<>();
         result.setValue(Resource.loading(null));
 
-        apiService.getOrders().enqueue(new Callback<List<OrderResponse>>() {
+        apiService.getOrders(page, size).enqueue(new Callback<List<OrderResponse>>() {
             @Override
             public void onResponse(@NonNull Call<List<OrderResponse>> call, @NonNull Response<List<OrderResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -66,6 +70,30 @@ public class OrderRepository {
 
             @Override
             public void onFailure(@NonNull Call<List<OrderResponse>> call, @NonNull Throwable t) {
+                result.setValue(Resource.error("Network error: " + t.getLocalizedMessage(), null));
+            }
+        });
+
+        return result;
+    }
+
+    public LiveData<Resource<OrderResponse>> getOrderById(Long orderId) {
+        MutableLiveData<Resource<OrderResponse>> result = new MutableLiveData<>();
+        result.setValue(Resource.loading(null));
+
+        apiService.getOrderById(orderId).enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<OrderResponse> call, @NonNull Response<OrderResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    result.setValue(Resource.success(response.body()));
+                } else {
+                    String err = RetrofitClient.extractErrorMessage(response, "Unable to load order details");
+                    result.setValue(Resource.error(err, null));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<OrderResponse> call, @NonNull Throwable t) {
                 result.setValue(Resource.error("Network error: " + t.getLocalizedMessage(), null));
             }
         });

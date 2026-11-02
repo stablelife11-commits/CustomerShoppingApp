@@ -56,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
         setupFragments(savedInstanceState);
         setupBottomNavigation();
         observeCartBadge();
+        if ("orders".equals(getIntent().getStringExtra("open_tab"))) {
+            binding.bottomNavigation.setSelectedItemId(R.id.nav_orders);
+        }
     }
 
     private void setupBottomNavIconsAndColors() {

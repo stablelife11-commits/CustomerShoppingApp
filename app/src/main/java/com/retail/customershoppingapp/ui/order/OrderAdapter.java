@@ -55,17 +55,25 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
 
         holder.binding.tvOrderId.setText("Order #" + order.getId());
 
-        String totalLabel = String.format(Locale.getDefault(), "Final Total: ₹%.2f", order.getTotalAmount());
+        StringBuilder totalLabel = new StringBuilder(
+                String.format(Locale.getDefault(), "Net Total: ₹%.2f", order.getNetPayableAmount())
+        );
         if (order.getDiscountAmount() > 0) {
-            totalLabel += String.format(Locale.getDefault(), " (Discount: -₹%.2f)", order.getDiscountAmount());
+            totalLabel.append(String.format(Locale.getDefault(), " (Discount: -₹%.2f)", order.getDiscountAmount()));
         }
-        holder.binding.tvOrderTotal.setText(totalLabel);
+        if (order.getReturnedAmount() > 0) {
+            totalLabel.append(String.format(Locale.getDefault(), " (Return Credit: -₹%.2f)", order.getReturnedAmount()));
+        }
+        holder.binding.tvOrderTotal.setText(totalLabel.toString());
 
         String date = order.getOrderDate() != null ? order.getOrderDate().split("T")[0] : "Recent";
-        holder.binding.tvOrderDate.setText("Date: " + date);
+        holder.binding.tvOrderDate.setText("Date: " + date + " • Payment: " + order.getPaymentStatus());
 
         String status = order.getStatus() != null ? order.getStatus().toUpperCase(Locale.ROOT) : "PLACED";
         String badgeText = "CONFIRMED".equals(status) ? "SELLER CONFIRMED" : status;
+        if ("DELIVERED".equals(status) && order.getReturnedAmount() > 0) {
+            badgeText = "DELIVERED • RETURN CREDITED";
+        }
         holder.binding.tvOrderStatus.setText(badgeText);
 
         if ("CONFIRMED".equals(status) || "DELIVERED".equals(status)) {

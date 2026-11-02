@@ -14,7 +14,6 @@ import com.retail.customershoppingapp.databinding.ActivityOrderDetailBinding;
 import com.retail.customershoppingapp.model.order.OrderResponse;
 import com.retail.customershoppingapp.network.Resource;
 
-import java.util.List;
 import java.util.Locale;
 
 public class OrderDetailActivity extends AppCompatActivity {
@@ -45,18 +44,20 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (order != null && order.getId() != null) {
+            refreshLatestOrderFromServer(order.getId());
+        }
+    }
+
     private void refreshLatestOrderFromServer(Long orderId) {
         if (orderId == null) return;
-        orderViewModel.getOrders().observe(this, resource -> {
+        orderViewModel.getOrderById(orderId).observe(this, resource -> {
             if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
-                List<OrderResponse> latestOrders = resource.data;
-                for (OrderResponse latest : latestOrders) {
-                    if (orderId.equals(latest.getId())) {
-                        order = latest;
-                        bindOrderDetails(latest);
-                        break;
-                    }
-                }
+                order = resource.data;
+                bindOrderDetails(order);
             }
         });
     }
@@ -64,6 +65,9 @@ public class OrderDetailActivity extends AppCompatActivity {
     private void bindOrderDetails(OrderResponse currentOrder) {
         String status = currentOrder.getStatus().toUpperCase(Locale.ROOT);
         String badgeText = "CONFIRMED".equals(status) ? "SELLER CONFIRMED" : status;
+        if ("DELIVERED".equals(status) && currentOrder.getReturnedAmount() > 0) {
+            badgeText = "DELIVERED • RETURN CREDITED";
+        }
 
         binding.tvDetailOrderId.setText(String.format(Locale.getDefault(),
                 "Order #%d • %s", currentOrder.getId(), badgeText));
@@ -72,6 +76,7 @@ public class OrderDetailActivity extends AppCompatActivity {
         String dateStr = currentOrder.getOrderDate() != null
                 ? currentOrder.getOrderDate().replace("T", " ")
                 : "Recently";
+        if (dateStr.length() > 16) dateStr = dateStr.substring(0, 16);
         info.append("Placed on: ").append(dateStr);
 
         if (currentOrder.getDeliveryAddress() != null && !currentOrder.getDeliveryAddress().isEmpty()) {
@@ -84,16 +89,35 @@ public class OrderDetailActivity extends AppCompatActivity {
                     currentOrder.getSubtotalAmount(), currentOrder.getDiscountAmount()));
         }
 
+        if (currentOrder.getTaxAmount() > 0) {
+            info.append(String.format(Locale.getDefault(),
+                    "\n🧾 Included GST Tax: ₹%.2f", currentOrder.getTaxAmount()));
+        }
+
+        if (currentOrder.getReturnedAmount() > 0) {
+            info.append(String.format(Locale.getDefault(),
+                    "\n↩️ Returned Items Credit: -₹%.2f (Original Total: ₹%.2f)",
+                    currentOrder.getReturnedAmount(), currentOrder.getTotalAmount()));
+        }
+
         if (currentOrder.getSellerRemarks() != null && !currentOrder.getSellerRemarks().trim().isEmpty()) {
             info.append("\n💬 Seller Note: \"").append(currentOrder.getSellerRemarks().trim()).append("\"");
         }
 
         info.append(String.format(Locale.getDefault(),
-                "\n💳 Payment Status: %s (Paid: ₹%.2f)",
+                "\n💳 Payment Status: %s (Paid: ₹%.2f",
                 currentOrder.getPaymentStatus(), currentOrder.getPaidAmount()));
 
+        if (currentOrder.getRefundCreditAmount() > 0.009) {
+            info.append(String.format(Locale.getDefault(),
+                    " | Refund / Credit Due: ₹%.2f)", currentOrder.getRefundCreditAmount()));
+        } else {
+            info.append(String.format(Locale.getDefault(),
+                    " | Balance Due: ₹%.2f)", currentOrder.getBalanceDueAmount()));
+        }
+
         binding.tvDetailOrderDate.setText(info.toString());
-        binding.tvDetailOrderTotal.setText(String.format(Locale.getDefault(), "₹%.2f", currentOrder.getTotalAmount()));
+        binding.tvDetailOrderTotal.setText(String.format(Locale.getDefault(), "₹%.2f", currentOrder.getNetPayableAmount()));
 
         if (currentOrder.getItems() != null) {
             adapter.setItems(currentOrder.getItems());
@@ -101,7 +125,6 @@ public class OrderDetailActivity extends AppCompatActivity {
 
         // Render Dynamic Status Timeline
         int green = ContextCompat.getColor(this, R.color.success);
-        int primary = ContextCompat.getColor(this, R.color.primary);
         int grey = ContextCompat.getColor(this, R.color.text_secondary);
         int red = ContextCompat.getColor(this, R.color.error);
 
@@ -123,7 +146,12 @@ public class OrderDetailActivity extends AppCompatActivity {
         binding.timelineShipped.setText(isShipped ? "✓ Dispatched / Out for Delivery" : "○ Out for Delivery");
         binding.timelineShipped.setTextColor(isShipped ? green : grey);
 
-        binding.timelineDelivered.setText(isDelivered ? "✓ Delivered to Store" : "○ Delivered");
+        if (isDelivered && currentOrder.getReturnedAmount() > 0) {
+            binding.timelineDelivered.setText(String.format(Locale.getDefault(),
+                    "✓ Delivered to Store (Return Credit: -₹%.2f)", currentOrder.getReturnedAmount()));
+        } else {
+            binding.timelineDelivered.setText(isDelivered ? "✓ Delivered to Store" : "○ Delivered");
+        }
         binding.timelineDelivered.setTextColor(isDelivered ? green : grey);
 
         if ("PLACED".equals(status)) {

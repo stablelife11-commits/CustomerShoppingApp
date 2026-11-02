@@ -30,6 +30,10 @@ public class OrderViewModel extends AndroidViewModel {
         return repository.getOrders();
     }
 
+    public LiveData<Resource<OrderResponse>> getOrderById(Long orderId) {
+        return repository.getOrderById(orderId);
+    }
+
     public LiveData<Resource<OrderResponse>> cancelOrder(Long orderId) {
         return repository.cancelOrder(orderId);
     }

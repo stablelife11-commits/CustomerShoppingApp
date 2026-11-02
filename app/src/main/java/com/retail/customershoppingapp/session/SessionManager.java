@@ -3,6 +3,9 @@ package com.retail.customershoppingapp.session;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.retail.customershoppingapp.model.cart.CartItem;
@@ -12,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SessionManager {
-    private static final String PREF_NAME = "RetailFlowSession";
+    private static final String PREF_NAME = "RetailFlowSessionSecure";
     private static final String KEY_TOKEN = "jwt_token";
     private static final String KEY_EMAIL = "user_email";
     private static final String KEY_NAME = "user_name";
@@ -25,7 +28,23 @@ public class SessionManager {
     private final Gson gson;
 
     public SessionManager(Context context) {
-        pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        Context appContext = context.getApplicationContext();
+        SharedPreferences initializedPref;
+        try {
+            MasterKey masterKey = new MasterKey.Builder(appContext)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
+            initializedPref = EncryptedSharedPreferences.create(
+                    appContext,
+                    PREF_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+        } catch (Exception e) {
+            initializedPref = appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        }
+        pref = initializedPref;
         editor = pref.edit();
         gson = new Gson();
     }
@@ -40,7 +59,10 @@ public class SessionManager {
     }
 
     public boolean isLoggedIn() {
-        return getAuthToken() != null && !getAuthToken().trim().isEmpty();
+        String token = getAuthToken();
+        String role = getUserRole();
+        return token != null && !token.trim().isEmpty()
+                && (role.isEmpty() || "BUYER".equalsIgnoreCase(role));
     }
 
     public void saveUserDetails(String email, String name, String role) {
@@ -64,7 +86,7 @@ public class SessionManager {
     }
 
     public Long getCustomerId() {
-        return pref.getLong(KEY_CUSTOMER_ID, -1L); // 🟢 FIX: Ab 1L nahi uthayega
+        return pref.getLong(KEY_CUSTOMER_ID, -1L);
     }
 
     public void saveCart(List<CartItem> cartList) {

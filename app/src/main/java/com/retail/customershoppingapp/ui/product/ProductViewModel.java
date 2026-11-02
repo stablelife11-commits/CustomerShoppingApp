@@ -26,9 +26,14 @@ public class ProductViewModel extends AndroidViewModel {
         repository = new ProductRepository(application);
     }
 
-    // 🟢 FIX: Request exact page and size from Repository
     public LiveData<Resource<List<ProductResponse>>> fetchProducts(int page, int size) {
-        return repository.getProducts(page, size);
+        return repository.getProducts(
+                page,
+                size,
+                searchQuery.getValue(),
+                selectedCategory.getValue(),
+                null
+        );
     }
 
     public LiveData<Resource<ProductResponse>> getProductById(Long productId) {
@@ -50,37 +55,21 @@ public class ProductViewModel extends AndroidViewModel {
     public List<ProductResponse> filterAndSort(List<ProductResponse> originalList) {
         if (originalList == null) return new ArrayList<>();
 
-        String query = searchQuery.getValue() != null ? searchQuery.getValue().trim().toLowerCase() : "";
-        String category = selectedCategory.getValue() != null ? selectedCategory.getValue() : "ALL";
         String sort = sortOrder.getValue() != null ? sortOrder.getValue() : "RECOMMENDED";
-
-        List<ProductResponse> filtered = new ArrayList<>();
-        for (ProductResponse product : originalList) {
-            boolean matchesSearch = query.isEmpty() ||
-                    (product.getName() != null && product.getName().toLowerCase().contains(query)) ||
-                    (product.getBrand() != null && product.getBrand().toLowerCase().contains(query)) ||
-                    (product.getCategory() != null && product.getCategory().toLowerCase().contains(query));
-
-            boolean matchesCategory = "ALL".equalsIgnoreCase(category) ||
-                    (product.getCategory() != null && product.getCategory().equalsIgnoreCase(category));
-
-            if (matchesSearch && matchesCategory) {
-                filtered.add(product);
-            }
-        }
+        List<ProductResponse> sorted = new ArrayList<>(originalList);
 
         if ("PRICE_LOW_HIGH".equals(sort)) {
-            Collections.sort(filtered, (p1, p2) -> p1.getMinPrice().compareTo(p2.getMinPrice()));
+            Collections.sort(sorted, (p1, p2) -> p1.getMinPrice().compareTo(p2.getMinPrice()));
         } else if ("PRICE_HIGH_LOW".equals(sort)) {
-            Collections.sort(filtered, (p1, p2) -> p2.getMinPrice().compareTo(p1.getMinPrice()));
+            Collections.sort(sorted, (p1, p2) -> p2.getMinPrice().compareTo(p1.getMinPrice()));
         } else if ("NAME".equals(sort)) {
-            Collections.sort(filtered, (p1, p2) -> {
+            Collections.sort(sorted, (p1, p2) -> {
                 String n1 = p1.getName() != null ? p1.getName() : "";
                 String n2 = p2.getName() != null ? p2.getName() : "";
                 return n1.compareToIgnoreCase(n2);
             });
         }
 
-        return filtered;
+        return sorted;
     }
 }

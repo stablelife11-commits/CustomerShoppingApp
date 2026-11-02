@@ -15,6 +15,7 @@ import com.retail.customershoppingapp.R;
 import com.retail.customershoppingapp.databinding.ActivityProductDetailBinding;
 import com.retail.customershoppingapp.model.product.ProductResponse;
 import com.retail.customershoppingapp.model.product.VariantResponse;
+import com.retail.customershoppingapp.network.Resource;
 import com.retail.customershoppingapp.ui.cart.CartViewModel;
 import com.retail.customershoppingapp.ui.checkout.CheckoutActivity;
 
@@ -29,6 +30,7 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
 
     private ActivityProductDetailBinding binding;
     private CartViewModel cartViewModel;
+    private ProductViewModel productViewModel;
     private ProductResponse product;
     private VariantAdapter variantAdapter;
     private ImageCarouselAdapter imageCarouselAdapter;
@@ -41,6 +43,7 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
         setContentView(binding.getRoot());
 
         cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
+        productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         binding.toolbar.setNavigationOnClickListener(v -> finish());
 
         if (getIntent().hasExtra("product_data")) {
@@ -54,6 +57,17 @@ public class ProductDetailActivity extends AppCompatActivity implements VariantA
         }
 
         setupUI();
+        refreshLatestProductFromServer(product.getId());
+    }
+
+    private void refreshLatestProductFromServer(Long productId) {
+        if (productId == null) return;
+        productViewModel.getProductById(productId).observe(this, resource -> {
+            if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
+                product = resource.data;
+                setupUI();
+            }
+        });
     }
 
     private void setupUI() {

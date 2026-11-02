@@ -27,8 +27,14 @@ public class OrderResponse implements Serializable {
     @SerializedName("discountAmount")
     private Double discountAmount;
 
+    @SerializedName("taxAmount")
+    private Double taxAmount;
+
     @SerializedName("totalAmount")
     private Double totalAmount;
+
+    @SerializedName("returnedAmount")
+    private Double returnedAmount;
 
     @SerializedName("paidAmount")
     private Double paidAmount;
@@ -58,7 +64,9 @@ public class OrderResponse implements Serializable {
     public String getCustomerMobile() { return customerMobile; }
     public Double getSubtotalAmount() { return subtotalAmount != null ? subtotalAmount : getTotalAmount(); }
     public Double getDiscountAmount() { return discountAmount != null ? discountAmount : 0.0; }
+    public Double getTaxAmount() { return taxAmount != null ? taxAmount : 0.0; }
     public Double getTotalAmount() { return totalAmount != null ? totalAmount : 0.0; }
+    public Double getReturnedAmount() { return returnedAmount != null ? returnedAmount : 0.0; }
     public Double getPaidAmount() { return paidAmount != null ? paidAmount : 0.0; }
     public String getPaymentStatus() { return paymentStatus != null ? paymentStatus : "UNPAID"; }
     public String getSellerRemarks() { return sellerRemarks; }
@@ -66,4 +74,16 @@ public class OrderResponse implements Serializable {
     public String getStatus() { return status != null ? status : "PLACED"; }
     public String getDeliveryAddress() { return deliveryAddress; }
     public List<OrderItemResponse> getItems() { return items; }
+
+    public double getNetPayableAmount() {
+        return Math.max(0.0, getTotalAmount() - getReturnedAmount());
+    }
+
+    public double getBalanceDueAmount() {
+        return Math.max(0.0, getNetPayableAmount() - getPaidAmount());
+    }
+
+    public double getRefundCreditAmount() {
+        return Math.max(0.0, getPaidAmount() - getNetPayableAmount());
+    }
 }

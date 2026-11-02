@@ -35,8 +35,17 @@ public class AuthRepository {
         apiService.login(request).enqueue(new Callback<AuthResponse>() {
             @Override
             public void onResponse(@NonNull Call<AuthResponse> call, @NonNull Response<AuthResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful() && response.body() != null && response.body().getToken() != null) {
                     AuthResponse auth = response.body();
+                    String role = auth.getRole() != null ? auth.getRole().trim().toUpperCase() : "";
+
+                    if (!"BUYER".equals(role)) {
+                        result.setValue(Resource.error(
+                                "Access Denied: This account has role '" + role + "'. Only BUYER accounts can use FlowMart.",
+                                null));
+                        return;
+                    }
+
                     sessionManager.saveAuthToken(auth.getToken());
                     sessionManager.saveUserDetails(auth.getEmail(), auth.getName(), auth.getRole());
                     sessionManager.saveCustomerId(auth.getCustomerId());

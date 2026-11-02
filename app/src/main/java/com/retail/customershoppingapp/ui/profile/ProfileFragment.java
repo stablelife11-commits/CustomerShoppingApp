@@ -42,6 +42,13 @@ public class ProfileFragment extends Fragment {
         binding.itemAbout.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Retail Flow App v1.0.0", Toast.LENGTH_SHORT).show()
         );
+        binding.itemMyOrders.setOnClickListener(v -> {
+            com.google.android.material.bottomnavigation.BottomNavigationView bottomNav =
+                    requireActivity().findViewById(com.retail.customershoppingapp.R.id.bottom_navigation);
+            if (bottomNav != null) {
+                bottomNav.setSelectedItemId(com.retail.customershoppingapp.R.id.nav_orders);
+            }
+        });
 
         binding.itemLogout.setOnClickListener(v -> {
             authViewModel.logout();
