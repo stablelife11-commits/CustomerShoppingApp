@@ -111,5 +111,6 @@ public class SessionManager {
     public void logout() {
         editor.clear();
         editor.apply();
+        com.retail.customershoppingapp.repository.CartRepository.resetInMemoryCart();
     }
 }

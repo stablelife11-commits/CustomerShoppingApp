@@ -57,6 +57,10 @@ public class CartResponseDto {
             product.setActive(dto.productActive != null ? dto.productActive : true);
             product.setVariants(Collections.singletonList(variant));
 
+            if (dto.primaryImageUrl != null && !dto.primaryImageUrl.isEmpty()) {
+                product.setImageUrls(Collections.singletonList(dto.primaryImageUrl));
+            }
+
             int qty = dto.quantity != null ? dto.quantity : 1;
             result.add(new CartItem(product, variant, qty, dto.itemNote));
         }
@@ -84,6 +88,9 @@ public class CartResponseDto {
 
         @SerializedName("sellerId")
         public Long sellerId;
+
+        @SerializedName("primaryImageUrl")
+        public String primaryImageUrl;
 
         @SerializedName("variantId")
         public Long variantId;

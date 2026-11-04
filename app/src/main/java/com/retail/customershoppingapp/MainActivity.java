@@ -28,13 +28,14 @@ public class MainActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private CartViewModel cartViewModel;
 
-    private final Fragment homeFragment = new HomeFragment();
-    private final Fragment categoriesFragment = new CategoriesFragment();
-    private final Fragment cartFragment = new CartFragment();
-    private final Fragment ordersFragment = new OrderHistoryFragment();
-    private final Fragment profileFragment = new ProfileFragment();
-    private final FragmentManager fm = getSupportFragmentManager();
-    private Fragment activeFragment = homeFragment;
+    private Fragment homeFragment;
+    private Fragment categoriesFragment;
+    private Fragment cartFragment;
+    private Fragment ordersFragment;
+    private Fragment profileFragment;
+
+    private FragmentManager fm;
+    private Fragment activeFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,8 +96,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupFragments(Bundle savedInstanceState) {
+        fm = getSupportFragmentManager();
         int containerId = binding.fragmentContainer.getId();
         if (savedInstanceState == null) {
+            homeFragment = new HomeFragment();
+            categoriesFragment = new CategoriesFragment();
+            cartFragment = new CartFragment();
+            ordersFragment = new OrderHistoryFragment();
+            profileFragment = new ProfileFragment();
+
             fm.beginTransaction()
                     .add(containerId, profileFragment, "5").hide(profileFragment)
                     .add(containerId, ordersFragment, "4").hide(ordersFragment)
@@ -106,6 +114,19 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
             activeFragment = homeFragment;
             binding.bottomNavigation.setSelectedItemId(R.id.nav_home);
+        } else {
+            homeFragment = fm.findFragmentByTag("1");
+            categoriesFragment = fm.findFragmentByTag("2");
+            cartFragment = fm.findFragmentByTag("3");
+            ordersFragment = fm.findFragmentByTag("4");
+            profileFragment = fm.findFragmentByTag("5");
+
+            int selectedId = binding.bottomNavigation.getSelectedItemId();
+            if (selectedId == R.id.nav_categories) activeFragment = categoriesFragment;
+            else if (selectedId == R.id.nav_cart) activeFragment = cartFragment;
+            else if (selectedId == R.id.nav_orders) activeFragment = ordersFragment;
+            else if (selectedId == R.id.nav_account) activeFragment = profileFragment;
+            else activeFragment = homeFragment;
         }
     }
 

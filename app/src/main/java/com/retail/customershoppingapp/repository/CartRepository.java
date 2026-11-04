@@ -48,6 +48,11 @@ public class CartRepository {
         }
     }
 
+    public static synchronized void resetInMemoryCart() {
+        initialized = false;
+        SHARED_CART_LIVE_DATA.postValue(new ArrayList<>());
+    }
+
     public LiveData<List<CartItem>> getCartLiveData() {
         return SHARED_CART_LIVE_DATA;
     }
@@ -59,6 +64,9 @@ public class CartRepository {
 
     public void refreshLocalCart() {
         SHARED_CART_LIVE_DATA.setValue(sessionManager.getCart());
+        if (sessionManager.isLoggedIn()) {
+            syncCartFromServer();
+        }
     }
 
     public void syncCartFromServer() {
@@ -116,6 +124,8 @@ public class CartRepository {
                         public void onResponse(@NonNull Call<CartResponseDto> call, @NonNull Response<CartResponseDto> response) {
                             if (response.isSuccessful() && response.body() != null) {
                                 applyServerCartResponse(response.body());
+                            } else {
+                                syncCartFromServer();
                             }
                         }
 
@@ -149,6 +159,8 @@ public class CartRepository {
                         public void onResponse(@NonNull Call<CartResponseDto> call, @NonNull Response<CartResponseDto> response) {
                             if (response.isSuccessful() && response.body() != null) {
                                 applyServerCartResponse(response.body());
+                            } else {
+                                syncCartFromServer();
                             }
                         }
 
@@ -185,6 +197,8 @@ public class CartRepository {
                     public void onResponse(@NonNull Call<CartResponseDto> call, @NonNull Response<CartResponseDto> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             applyServerCartResponse(response.body());
+                        } else {
+                            syncCartFromServer();
                         }
                     }
 
@@ -199,6 +213,8 @@ public class CartRepository {
                             public void onResponse(@NonNull Call<CartResponseDto> call, @NonNull Response<CartResponseDto> response) {
                                 if (response.isSuccessful() && response.body() != null) {
                                     applyServerCartResponse(response.body());
+                                } else {
+                                    syncCartFromServer();
                                 }
                             }
 
@@ -251,14 +267,16 @@ public class CartRepository {
         Map<Long, List<String>> cachedImagesByProductId = new HashMap<>();
         for (CartItem existing : localExisting) {
             if (existing.getProduct() != null && existing.getProduct().getId() != null
-                    && existing.getProduct().getImageUrls() != null) {
+                    && existing.getProduct().getImageUrls() != null
+                    && !existing.getProduct().getImageUrls().isEmpty()) {
                 cachedImagesByProductId.put(existing.getProduct().getId(), existing.getProduct().getImageUrls());
             }
         }
 
         List<CartItem> syncedList = serverCart.toLocalCartItems();
         for (CartItem synced : syncedList) {
-            if (synced.getProduct() != null && synced.getProduct().getId() != null) {
+            if (synced.getProduct() != null && synced.getProduct().getId() != null
+                    && (synced.getProduct().getImageUrls() == null || synced.getProduct().getImageUrls().isEmpty())) {
                 List<String> imgs = cachedImagesByProductId.get(synced.getProduct().getId());
                 if (imgs != null) {
                     synced.getProduct().setImageUrls(imgs);
