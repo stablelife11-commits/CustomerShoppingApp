@@ -86,7 +86,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
                 binding.tvMrpStrike.setText("₹" + mrp.toPlainString());
                 binding.tvMrpStrike.setPaintFlags(binding.tvMrpStrike.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                 binding.tvDiscountBadge.setVisibility(View.VISIBLE);
-                binding.tvDiscountBadge.setText("20% OFF");
+                binding.tvDiscountBadge.setText("BUY");
             } else {
                 binding.tvMrpStrike.setVisibility(View.GONE);
                 binding.tvDiscountBadge.setVisibility(View.GONE);
@@ -111,9 +111,9 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
             }
 
             if (packSize > 1) {
-                binding.tvBadge.setText(String.format(Locale.getDefault(), "Min Order: %d pcs • Pack of %d", moq, packSize));
+                binding.tvBadge.setText(String.format(Locale.getDefault(), "Min Order: %d Box • Pack of %d", moq, packSize));
             } else {
-                binding.tvBadge.setText(String.format(Locale.getDefault(), "Min Order: %d pc(s)", moq));
+                binding.tvBadge.setText(String.format(Locale.getDefault(), "Min Order: %d Box", moq));
             }
 
             boolean isActive = Boolean.TRUE.equals(product.getActive()) && totalStock >= moq;
