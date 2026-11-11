@@ -21,6 +21,7 @@ import com.retail.customershoppingapp.ui.category.CategoriesFragment;
 import com.retail.customershoppingapp.ui.home.HomeFragment;
 import com.retail.customershoppingapp.ui.order.OrderHistoryFragment;
 import com.retail.customershoppingapp.ui.profile.ProfileFragment;
+import com.retail.customershoppingapp.utils.UpdateHelper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,10 +61,12 @@ public class MainActivity extends AppCompatActivity {
         if ("orders".equals(getIntent().getStringExtra("open_tab"))) {
             binding.bottomNavigation.setSelectedItemId(R.id.nav_orders);
         }
+
+        // Check for OTA app updates on startup
+        UpdateHelper.checkForUpdate(this, false);
     }
 
     private void setupBottomNavIconsAndColors() {
-        // 1. Force-set custom vector icons in Java to bypass any cached XML menu state
         Menu menu = binding.bottomNavigation.getMenu();
         if (menu.findItem(R.id.nav_home) != null) {
             menu.findItem(R.id.nav_home).setIcon(R.drawable.ic_nav_home);
@@ -81,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
             menu.findItem(R.id.nav_account).setIcon(R.drawable.ic_nav_account);
         }
 
-        // 2. Active (Blue) vs Inactive (Grey) ColorStateList
         int[][] states = new int[][]{
                 new int[]{android.R.attr.state_checked},
                 new int[]{-android.R.attr.state_checked}
@@ -93,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
         ColorStateList navColorStateList = new ColorStateList(states, colors);
         binding.bottomNavigation.setItemIconTintList(navColorStateList);
         binding.bottomNavigation.setItemTextColor(navColorStateList);
+        // BottomNavigationView को दोबारा डबल पैडिंग लगाने से रोकें
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavigation, (v, insets) -> insets);
     }
 
     private void setupFragments(Bundle savedInstanceState) {

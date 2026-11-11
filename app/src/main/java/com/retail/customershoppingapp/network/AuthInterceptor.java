@@ -37,7 +37,9 @@ public class AuthInterceptor implements Interceptor {
         String path = original.url().encodedPath();
         Request.Builder builder = original.newBuilder();
 
-        if (sessionManager != null && sessionManager.isLoggedIn() && !path.contains("/auth/")) {
+        boolean isPublicEndpoint = path.contains("/auth/") || path.contains("/app-update/");
+
+        if (sessionManager != null && sessionManager.isLoggedIn() && !isPublicEndpoint) {
             String token = sessionManager.getAuthToken();
             if (token != null && !token.isEmpty()) {
                 builder.header("Authorization", "Bearer " + token);
@@ -46,7 +48,7 @@ public class AuthInterceptor implements Interceptor {
 
         Response response = chain.proceed(builder.build());
 
-        if (response.code() == 401 && !path.contains("/auth/") && sessionManager != null) {
+        if (response.code() == 401 && !isPublicEndpoint && sessionManager != null) {
             sessionManager.logout();
             if (appContext != null) {
                 new Handler(Looper.getMainLooper()).post(() -> {

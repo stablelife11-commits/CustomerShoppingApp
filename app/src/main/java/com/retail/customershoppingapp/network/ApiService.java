@@ -1,5 +1,6 @@
 package com.retail.customershoppingapp.network;
 
+import com.retail.customershoppingapp.model.AppUpdateResponse;
 import com.retail.customershoppingapp.model.auth.AuthResponse;
 import com.retail.customershoppingapp.model.auth.LoginRequest;
 import com.retail.customershoppingapp.model.auth.RegisterRequest;
@@ -29,6 +30,10 @@ public interface ApiService {
 
     @POST("api/v1/auth/register")
     Call<AuthResponse> register(@Body RegisterRequest request);
+
+    // App OTA Update Check
+    @GET("api/v1/app-update/check")
+    Call<AppUpdateResponse> checkAppUpdate(@Query("appType") String appType);
 
     // Products with server-side pagination, keyword, category, and brand filtering
     @GET("api/v1/products")

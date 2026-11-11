@@ -10,11 +10,12 @@ android {
         applicationId = "com.retail.customershoppingapp"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BASE_URL", "\"http://10.39.191.251:8080/\"")
+        // Updated Render Live URL:
+        buildConfigField("String", "BASE_URL", "\"https://retail-flow-backend-xqud.onrender.com/\"")
     }
 
     buildTypes {

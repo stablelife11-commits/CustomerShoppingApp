@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,6 +15,7 @@ import com.retail.customershoppingapp.databinding.FragmentProfileBinding;
 import com.retail.customershoppingapp.session.SessionManager;
 import com.retail.customershoppingapp.ui.auth.AuthViewModel;
 import com.retail.customershoppingapp.ui.auth.LoginActivity;
+import com.retail.customershoppingapp.utils.UpdateHelper;
 
 public class ProfileFragment extends Fragment {
 
@@ -40,8 +40,9 @@ public class ProfileFragment extends Fragment {
         binding.tvUserEmail.setText(sessionManager.getUserEmail().isEmpty() ? "customer@retailflow.com" : sessionManager.getUserEmail());
 
         binding.itemAbout.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Retail Flow App v1.0.0", Toast.LENGTH_SHORT).show()
+                UpdateHelper.checkForUpdate(requireContext(), true)
         );
+
         binding.itemMyOrders.setOnClickListener(v -> {
             com.google.android.material.bottomnavigation.BottomNavigationView bottomNav =
                     requireActivity().findViewById(com.retail.customershoppingapp.R.id.bottom_navigation);
