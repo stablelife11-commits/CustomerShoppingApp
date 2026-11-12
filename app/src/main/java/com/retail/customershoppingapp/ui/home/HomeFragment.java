@@ -131,7 +131,8 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
         binding.ivSearchMic.setOnClickListener(v -> openProductListWithSearch(""));
         binding.ivSearchCamera.setOnClickListener(v -> openProductListWithSearch(""));
         binding.btnHeaderNotifications.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "All seller order updates are synced in Orders tab", Toast.LENGTH_SHORT).show());
+                com.retail.customershoppingapp.utils.NotificationHelper.checkAndShowNotifications(requireContext(), true)
+        );
     }
 
     private void startShimmer() {
@@ -204,6 +205,7 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
                 binding.tvErrorMsg.setText(resource.message != null ? resource.message : "Failed to load products");
             }
         });
+        com.retail.customershoppingapp.utils.NotificationHelper.checkAndShowNotifications(requireContext(), false);
     }
 
     private void openProductListWithSearch(String query) {

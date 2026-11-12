@@ -10,6 +10,7 @@ import com.retail.customershoppingapp.model.order.OrderRequest;
 import com.retail.customershoppingapp.model.order.OrderResponse;
 import com.retail.customershoppingapp.model.product.ProductResponse;
 
+import com.retail.customershoppingapp.model.BuyerNotificationDto;
 import java.util.List;
 
 import retrofit2.Call;
@@ -88,4 +89,10 @@ public interface ApiService {
     // Buyer Order Cancellation (allowed when order is PLACED)
     @PATCH("api/v1/orders/{id}/status")
     Call<OrderResponse> updateOrderStatus(@Path("id") Long id, @Query("status") String status);
+    @GET("api/v1/notifications/my")
+    Call<List<BuyerNotificationDto>> getMyNotifications();
+
+    @PATCH("api/v1/notifications/mark-all-read")
+    Call<Void> markAllNotificationsRead();
+
 }
