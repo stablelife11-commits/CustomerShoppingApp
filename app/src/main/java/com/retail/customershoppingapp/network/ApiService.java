@@ -94,5 +94,8 @@ public interface ApiService {
 
     @PATCH("api/v1/notifications/mark-all-read")
     Call<Void> markAllNotificationsRead();
-
+    // 🟢 नया: FCM Token सर्वर पर सेव करने के लिए यह लाइन जोड़ें
+    @POST("api/v1/notifications/fcm-token")
+    Call<Void> updateFcmToken(@Body java.util.Map<String, String> body);
 }
+
