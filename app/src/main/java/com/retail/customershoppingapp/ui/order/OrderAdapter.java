@@ -53,7 +53,10 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         OrderResponse order = orders.get(position);
 
-        holder.binding.tvOrderId.setText("Order #" + order.getId());
+        int lotCount = order.getSellerLotCount();
+        String titleText = "Order #" + order.getOrderGroupId()
+                + (lotCount > 1 ? " (" + lotCount + " Lots)" : "");
+        holder.binding.tvOrderId.setText(titleText);
 
         StringBuilder totalLabel = new StringBuilder(
                 String.format(Locale.getDefault(), "Net Total: ₹%.2f", order.getNetPayableAmount())
@@ -96,7 +99,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.ViewHolder> 
                         .append(" × ₹").append(item.getPrice() != null ? item.getPrice() : "0.00");
 
                 if (item.getItemNote() != null && !item.getItemNote().trim().isEmpty()) {
-                    itemsStr.append(" [Note: ").append(item.getItemNote().trim()).append("]");
+                    itemsStr.append(" [").append(item.getItemNote().trim()).append("]");
                 }
                 itemsStr.append("\n");
             }

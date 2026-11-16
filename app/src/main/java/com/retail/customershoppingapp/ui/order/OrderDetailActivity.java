@@ -14,6 +14,7 @@ import com.retail.customershoppingapp.databinding.ActivityOrderDetailBinding;
 import com.retail.customershoppingapp.model.order.OrderResponse;
 import com.retail.customershoppingapp.network.Resource;
 
+import java.util.List;
 import java.util.Locale;
 
 public class OrderDetailActivity extends AppCompatActivity {
@@ -39,7 +40,7 @@ public class OrderDetailActivity extends AppCompatActivity {
             order = (OrderResponse) getIntent().getSerializableExtra("order_data");
             if (order != null) {
                 bindOrderDetails(order);
-                refreshLatestOrderFromServer(order.getId());
+                refreshLatestOrderFromServer();
             }
         }
     }
@@ -47,17 +48,25 @@ public class OrderDetailActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (order != null && order.getId() != null) {
-            refreshLatestOrderFromServer(order.getId());
+        if (order != null) {
+            refreshLatestOrderFromServer();
         }
     }
 
-    private void refreshLatestOrderFromServer(Long orderId) {
-        if (orderId == null) return;
-        orderViewModel.getOrderById(orderId).observe(this, resource -> {
+    private void refreshLatestOrderFromServer() {
+        if (order == null) return;
+        final String targetGroupId = order.getOrderGroupId();
+
+        orderViewModel.getOrders().observe(this, resource -> {
             if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
-                order = resource.data;
-                bindOrderDetails(order);
+                List<OrderResponse> groupedList = OrderResponse.groupByMasterOrder(resource.data);
+                for (OrderResponse candidate : groupedList) {
+                    if (targetGroupId.equals(candidate.getOrderGroupId())) {
+                        order = candidate;
+                        bindOrderDetails(order);
+                        break;
+                    }
+                }
             }
         });
     }
@@ -70,7 +79,7 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
 
         binding.tvDetailOrderId.setText(String.format(Locale.getDefault(),
-                "Order #%d • %s", currentOrder.getId(), badgeText));
+                "Order #%s • %s", currentOrder.getOrderGroupId(), badgeText));
 
         StringBuilder info = new StringBuilder();
         String dateStr = currentOrder.getOrderDate() != null
@@ -78,6 +87,10 @@ public class OrderDetailActivity extends AppCompatActivity {
                 : "Recently";
         if (dateStr.length() > 16) dateStr = dateStr.substring(0, 16);
         info.append("Placed on: ").append(dateStr);
+
+        if (currentOrder.getSellerLotCount() > 1) {
+            info.append("\n📦 Consolidated Checkout: ").append(currentOrder.getSellerLotCount()).append(" Seller Shipments");
+        }
 
         if (currentOrder.getDeliveryAddress() != null && !currentOrder.getDeliveryAddress().isEmpty()) {
             info.append("\n📍 Delivery Address: ").append(currentOrder.getDeliveryAddress());
@@ -154,28 +167,32 @@ public class OrderDetailActivity extends AppCompatActivity {
         }
         binding.timelineDelivered.setTextColor(isDelivered ? green : grey);
 
-        if ("PLACED".equals(status)) {
+        List<Long> cancellableIds = currentOrder.getCancellableSubOrderIds();
+        if (!cancellableIds.isEmpty()) {
             binding.btnCancelOrder.setVisibility(View.VISIBLE);
-            binding.btnCancelOrder.setOnClickListener(v -> confirmCancelOrder(currentOrder.getId()));
+            binding.btnCancelOrder.setOnClickListener(v -> confirmCancelOrder(cancellableIds));
         } else {
             binding.btnCancelOrder.setVisibility(View.GONE);
         }
     }
 
-    private void confirmCancelOrder(Long orderId) {
+    private void confirmCancelOrder(List<Long> cancellableIds) {
         new AlertDialog.Builder(this)
-                .setTitle("Cancel Order #" + orderId + "?")
-                .setMessage("Are you sure you want to cancel this order? Reserved stock will be restored immediately.")
+                .setTitle("Cancel Order #" + order.getOrderGroupId() + "?")
+                .setMessage("Are you sure you want to cancel the unconfirmed items in this order? Reserved stock will be restored immediately.")
                 .setPositiveButton("Yes, Cancel Order", (dialog, which) -> {
-                    orderViewModel.cancelOrder(orderId).observe(this, resource -> {
-                        if (resource == null) return;
-                        if (resource.status == Resource.Status.SUCCESS && resource.data != null) {
-                            Toast.makeText(this, "Order cancelled successfully.", Toast.LENGTH_SHORT).show();
-                            bindOrderDetails(resource.data);
-                        } else if (resource.status == Resource.Status.ERROR) {
-                            Toast.makeText(this, resource.message, Toast.LENGTH_LONG).show();
-                        }
-                    });
+                    final int total = cancellableIds.size();
+                    final int[] completed = {0};
+                    for (Long subId : cancellableIds) {
+                        orderViewModel.cancelOrder(subId).observe(this, resource -> {
+                            if (resource == null || resource.status == Resource.Status.LOADING) return;
+                            completed[0]++;
+                            if (completed[0] >= total) {
+                                Toast.makeText(this, "Order cancelled successfully.", Toast.LENGTH_SHORT).show();
+                                refreshLatestOrderFromServer();
+                            }
+                        });
+                    }
                 })
                 .setNegativeButton("Keep Order", null)
                 .show();

@@ -61,14 +61,16 @@ public class OrderHistoryFragment extends Fragment implements OrderAdapter.OnOrd
             } else if (resource.status == Resource.Status.SUCCESS) {
                 binding.progressBar.setVisibility(View.GONE);
 
-                List<OrderResponse> orders = resource.data != null ? resource.data : new ArrayList<>();
-                if (orders.isEmpty()) {
+                List<OrderResponse> rawOrders = resource.data != null ? resource.data : new ArrayList<>();
+                List<OrderResponse> groupedMasterOrders = OrderResponse.groupByMasterOrder(rawOrders);
+
+                if (groupedMasterOrders.isEmpty()) {
                     binding.layoutEmptyOrders.setVisibility(View.VISIBLE);
                     binding.rvOrders.setVisibility(View.GONE);
                 } else {
                     binding.layoutEmptyOrders.setVisibility(View.GONE);
                     binding.rvOrders.setVisibility(View.VISIBLE);
-                    orderAdapter.setOrders(orders);
+                    orderAdapter.setOrders(groupedMasterOrders);
                 }
             } else if (resource.status == Resource.Status.ERROR) {
                 binding.progressBar.setVisibility(View.GONE);
