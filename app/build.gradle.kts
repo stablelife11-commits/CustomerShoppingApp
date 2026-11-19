@@ -11,8 +11,8 @@ android {
         applicationId = "com.retail.customershoppingapp"
         minSdk = 24
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.4"
+        versionCode = 5
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Updated Render Live URL:

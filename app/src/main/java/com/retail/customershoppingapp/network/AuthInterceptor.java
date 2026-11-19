@@ -48,6 +48,12 @@ public class AuthInterceptor implements Interceptor {
 
         Response response = chain.proceed(builder.build());
 
+        // Automatically save renewed sliding-session token from backend
+        String renewedToken = response.header("X-Renewed-Token");
+        if (renewedToken != null && !renewedToken.trim().isEmpty() && sessionManager != null) {
+            sessionManager.saveAuthToken(renewedToken.trim());
+        }
+
         if (response.code() == 401 && !isPublicEndpoint && sessionManager != null) {
             sessionManager.logout();
             if (appContext != null) {

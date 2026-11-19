@@ -46,7 +46,7 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     private final Handler bannerHandler = new Handler(Looper.getMainLooper());
     private int currentBannerSlide = 0;
     private final String[] bannerTags = {"WHOLESALE MEGA MELA", "DIRECT MILL DISPATCH", "GST INVOICE READY"};
-    private final String[] bannerTitles = {"Festive Garment Lots", "Bulk Innerwear Packs", "New Season Arrivals"};
+    private final String[] bannerTitles = {"Amul Comfy All Products ", "Dixcy Scott All products", "Ladies and Gents Garments"};
     private final String[] bannerSubs = {
             "Up to 25% margin on bulk innerwear & apparel packs",
             "Order in set-wise packs directly from verified sellers",
